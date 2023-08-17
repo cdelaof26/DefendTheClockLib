@@ -1,7 +1,10 @@
 package ui.construction;
 
 import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.JLabel;
+import javax.swing.Timer;
 import ui.BuildPanel;
 import ui.ImageButton;
 import ui.Label;
@@ -42,6 +45,14 @@ public class ArrangeBlockPanel extends Panel {
     private final ImageButton sentToBackButton = new ImageButton("Back", false, ImageButtonArrangement.UP_IMAGE);
     
     
+    private boolean pressed = false;
+    private boolean increaseValue;
+    private final Timer fastValueModificator = new Timer(100, (Action) -> {
+        modValue();
+    });
+    
+    
+    
     private final BuildPanel container;
     
     
@@ -57,11 +68,45 @@ public class ArrangeBlockPanel extends Panel {
         xCoordinateSelector.setPreferredSize_(new Dimension(190, 22));
         yCoordinateSelector.setPreferredSize_(new Dimension(190, 22));
         
-        moveForwardButton.addActionListener((Action) -> {
-            container.moveSelectedBlockALayer(true);
+        
+        
+//        moveForwardButton.addActionListener((Action) -> {
+//            container.moveSelectedBlockALayer(true);
+//        });
+//        moveBackwardButton.addActionListener((Action) -> {
+//            container.moveSelectedBlockALayer(false);
+//        });
+
+        moveForwardButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                pressed = true;
+                increaseValue = true;
+                
+                modValue();
+            }
+            
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                pressed = false;
+                fastValueModificator.stop();
+            }
         });
-        moveBackwardButton.addActionListener((Action) -> {
-            container.moveSelectedBlockALayer(false);
+        
+        moveBackwardButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                pressed = true;
+                increaseValue = false;
+                
+                modValue();
+            }
+            
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                pressed = false;
+                fastValueModificator.stop();
+            }
         });
         sentToFrontButton.addActionListener((Action) -> {
             container.moveSelectedBlockTo(true);
@@ -89,6 +134,17 @@ public class ArrangeBlockPanel extends Panel {
         add(sentToBackButton, moveBackwardButton, sentToFrontButton, UIAlignment.EAST, UIAlignment.EAST, 0, UIAlignment.NORTH, UIAlignment.NORTH, 0);
     }
 
+    private void modValue() {
+        if (!pressed) {
+            fastValueModificator.stop();
+            return;
+        } else if (!fastValueModificator.isRunning()) {
+            fastValueModificator.start();
+        }
+        
+        container.moveSelectedBlockALayer(increaseValue);
+    }
+    
     public void loadProperties(Block b) {
         if (b == null) {
             xCoordinateSelector.setValue(1);

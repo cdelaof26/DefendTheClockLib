@@ -75,7 +75,7 @@ public class BlockDragger extends MouseAdapter {
         if (y < 1)
             y = 1;
         
-        b.setCoordinates(x, y);
+        b.setCoordinates(x, y, true);
         container.mainWindow.buildPanel.updateBlockCoordinates();
         
         container.repaint();

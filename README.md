@@ -37,6 +37,18 @@ $ java defendtheclocklib/DefendTheClockLib
 
 ### Changelog
 
+### v0.2.0
+- Added a very early game ui for easy and other modes
+- Added error messages when entering to a world
+- Added Clock, EnemyPath, EnemySpawn, Dirt and Sand blocks
+- Added EyeMonster and FaceMonster
+- Created mechanism to detect the path to the clock from the spawn
+- Changed move forward and move backward button's behavior, holding them will 
+  accelerate the movement
+- Fixed a bug where `null` will be appended to `blocks` array when a block was deleted 
+  and its z-index was changed
+- Fixed save world button's text changing back to the count-down when saved
+
 ### v0.1.0
 - Initial project
 - This project is a rework of the original DefendTheClock

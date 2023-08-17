@@ -15,7 +15,7 @@ public class DefendTheClockLib {
     public static void main(String[] args) {
         LibUtilities.loadDefaultPreferences();
         
-//        new GameWindow(null, WorldUtilities.loadWorld(new File("/Users/cristopher/.dtc_worlds/World1.dtcl")), GameModes.CONSTRUCTION, "").showWindow();
+//        new GameWindow(null, WorldUtilities.loadWorld(new File("/Users/cristopher/.dtc_worlds/Meadow_Island.dtcl")), GameModes.EASY, "").showWindow();
         
         LoginWindow loginWindow = new LoginWindow();
         LibUtilities.loadPreferences(loginWindow.uiPreferences);

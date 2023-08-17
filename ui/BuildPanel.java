@@ -195,7 +195,7 @@ public class BuildPanel extends Panel {
         if (mainWindow.world.blockSelector.getSelectedBlock() == null)
             return;
         
-        mainWindow.world.blockSelector.getSelectedBlock().setCoordinates(xGrid, yGrid);
+        mainWindow.world.blockSelector.getSelectedBlock().setCoordinates(xGrid, yGrid, false);
         mainWindow.world.repaint();
     }
     

@@ -3,7 +3,6 @@ package utils;
 import java.awt.Color;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import ui.World;
@@ -50,13 +49,13 @@ public class WorldUtilities {
                 if (!isInteger)
                     throw new IllegalArgumentException("Data '" + value + "' is not a number");
                 
-                b.setXGrid(Double.parseDouble(value));
+                b.setXGrid(Double.parseDouble(value), true);
             break;
             case YGRID:
                 if (!isInteger)
                     throw new IllegalArgumentException("Data '" + value + "' is not a number");
                 
-                b.setYGrid(Double.parseDouble(value));
+                b.setYGrid(Double.parseDouble(value), true);
             break;
             case TOP_FACE_VISIBLE:
                 b.setTopFaceVisible(Boolean.parseBoolean(value));

@@ -9,13 +9,15 @@ import java.awt.geom.Path2D;
  * @author cristopher
  */
 public class GrassBlock extends Block {
+    private static final Color LEFT_GREEN_COLOR = new Color(0, 92, 83);
+    
     public GrassBlock(double x, double y, double diagonalLength) {
         super(x, y, diagonalLength);
         
         name = "Grass";
         filled = true;
         topFaceColor = new Color(38, 132, 123);
-        rightFaceColor = new Color(88, 43, 0);
+        rightFaceColor = new Color(118, 73, 30);
         leftFaceColor = new Color(73, 35, 1);
     }
     
@@ -41,7 +43,7 @@ public class GrassBlock extends Block {
         leftMaterial.closePath();
 
         if (leftFaceVisible) {
-            g2D.setColor(topFaceColor);
+            g2D.setColor(LEFT_GREEN_COLOR);
             g2D.fill(leftMaterial);
         }
         

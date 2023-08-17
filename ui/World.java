@@ -10,8 +10,12 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import javax.swing.JComponent;
 import ui.blocks.Block;
+import ui.blocks.ClockBlock;
+import ui.blocks.EnemyPathBlock;
+import ui.blocks.EnemySpawnBlock;
 import ui.mouselisteners.BlockDragger;
 import ui.mouselisteners.BlockSelector;
 import utils.LibUtilities;
@@ -46,6 +50,14 @@ public class World extends JComponent implements ComponentSetup {
     public final BlockDragger blockDragger = new BlockDragger(this);
     
     private ArrayList<Block> blocks = new ArrayList<>();
+    
+    protected boolean allPathBlockTogether = false;
+    protected boolean oneSpawnPathBlockFound = false;
+    protected boolean oneClockBlockFound = false;
+    
+    protected Point2D enemySpawnPoint = null;
+    
+    private LinkedList<Point2D> enemyPathCoordinates = new LinkedList<>();
     
     
     public GameWindow mainWindow = null;
@@ -156,6 +168,8 @@ public class World extends JComponent implements ComponentSetup {
         
         for (Block b : blocks)
             b.paintBlock(g2D);
+        
+//        paintRoute(g2D);
     }
     
     public final void addListeners() {
@@ -255,8 +269,22 @@ public class World extends JComponent implements ComponentSetup {
     public void setBlocks(ArrayList<Block> blocks) {
         this.blocks = blocks;
     }
+
+    public Point2D getEnemySpawnPoint() {
+        return enemySpawnPoint;
+    }
+
+    public Point2D getEnemyPathCoordinate(int index) {
+        if (index >= enemyPathCoordinates.size())
+            return null;
+        
+        return enemyPathCoordinates.get(index);
+    }
     
     public void addBlock(Block b) {
+        if (b == null)
+            return;
+        
         blockSelector.setSelectedBlock(b);
         blockSelector.setSelectedBlockIndex(blocks.size());
         blocks.add(b);
@@ -264,12 +292,19 @@ public class World extends JComponent implements ComponentSetup {
     }
     
     public void setBlock(int index, Block b) {
+        if (b == null) {
+            blockSelector.setSelectedBlock(null);
+            blocks.remove(index);
+            return;
+        }
+        
         blockSelector.setSelectedBlock(b);
         blocks.set(index, b);
         repaint();
     }
     
     public void deleteBlock(Block b) {
+        blockSelector.setSelectedBlock(null);
         blocks.remove(b);
         repaint();
     }
@@ -295,6 +330,9 @@ public class World extends JComponent implements ComponentSetup {
     }
     
     private void moveBlockLayer(int position) {
+        if (blockSelector.getSelectedBlock() == null)
+            return;
+        
         int index = blockSelector.getSelectedBlockIndex();
         
         if (index == position)
@@ -322,6 +360,111 @@ public class World extends JComponent implements ComponentSetup {
     
     public void moveSelectedBlockTo(boolean front) {
         moveBlockLayer(front ? blocks.size() - 1 : 0);
+    }
+    
+    public void setEnemyBlocksVisible(boolean b) {
+        for (Block block : blocks) {
+            if (block instanceof EnemyPathBlock)
+                ((EnemyPathBlock) block).setVisible(b);
+            if (block instanceof EnemySpawnBlock)
+                ((EnemySpawnBlock) block).setVisible(b);
+        }
+    }
+    
+    public void verifyWorldPath() {
+        ArrayList<Block> pathBlocks = new ArrayList<>();
+        enemyPathCoordinates = new LinkedList<>();
+        
+        int spawnBlocks = 0;
+        int clockBlocks = 0;
+        
+        Block spawnBlock = null;
+        Block clockBlock = null;
+        
+        for (int i = 0; i < blocks.size(); i++) {
+            Block b = blocks.get(i);
+            
+            if (b instanceof EnemyPathBlock)
+                pathBlocks.add(b);
+            if (b instanceof EnemySpawnBlock) {
+                spawnBlock = b;
+                spawnBlocks++;
+            }
+            if (b instanceof ClockBlock) {
+                clockBlock = b;
+                clockBlocks++;
+            }
+        }
+        
+        oneClockBlockFound = clockBlocks == 1;
+        if (!oneClockBlockFound)
+            return;
+        
+        oneSpawnPathBlockFound = spawnBlocks == 1;
+        if (!oneSpawnPathBlockFound)
+            return;
+        
+        if (pathBlocks.isEmpty()) {
+            allPathBlockTogether = false;
+            return;
+        }
+        
+        allPathBlockTogether = false;
+        
+        Point2D destinyCoordinates = clockBlock.getCoordinates();
+        
+        Block lastBlock = spawnBlock;
+        
+        while (pathBlocks.size() > 1) {
+            Point2D [] points = lastBlock.getAdjacentPoints();
+            
+            boolean connected = false;
+            
+            for (int i = 0; i < pathBlocks.size(); i++) {
+                Block b = pathBlocks.get(i);
+                
+                connected = b.doCoordinatesEqual(points[0]) || b.doCoordinatesEqual(points[1]) 
+                        || b.doCoordinatesEqual(points[2]) || b.doCoordinatesEqual(points[3]);
+                
+                if (connected) {
+                    lastBlock = pathBlocks.remove(i);
+                    enemyPathCoordinates.add(lastBlock.getCoordinates());
+                    break;
+                }
+            }
+            
+            if (!connected)
+                return;
+        }
+        
+        for (Point2D p : pathBlocks.get(0).getAdjacentPoints())
+            if (p.equals(destinyCoordinates)) {
+                allPathBlockTogether = true;
+                break;
+            }
+        
+        enemyPathCoordinates.add(pathBlocks.get(0).getCoordinates());
+        enemySpawnPoint = spawnBlock.getCoordinates();
+        
+//        System.out.println(allPathBlockTogether ? "Route COMPLETE" : "Route incomplete");
+    }
+    
+    public void paintRoute(Graphics2D g2D) {
+        if (enemyPathCoordinates.isEmpty())
+            return;
+        
+        g2D.setFont(UIProperties.APP_TITLE_FONT);
+        
+        for (int i = 0; i < enemyPathCoordinates.size(); i++) {
+            Point2D p = enemyPathCoordinates.get(i);
+            p.setLocation(((p.getX() - 1) * gridLength + (gridLength/2) - 5) * UIProperties.getUiScale(), (p.getY() - 1) * gridLength * UIProperties.getUiScale());
+            
+            g2D.setColor(Color.GREEN);
+            g2D.fill(new Rectangle2D.Double(p.getX(), p.getY(), 10, 10));
+            
+            g2D.setColor(Color.BLACK);
+            g2D.drawString("" + i, (float) p.getX(), (float) p.getY());
+        }
     }
     
     public HashMap<String, String> collectProperties() {

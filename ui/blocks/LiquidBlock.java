@@ -3,7 +3,6 @@ package ui.blocks;
 import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
-import javax.swing.Timer;
 import ui.UIProperties;
 
 /**
@@ -51,7 +50,7 @@ public class LiquidBlock extends Block {
     
     @Override
     public void paintSelectedIndicator(Graphics2D g2D) {
-        if (!selected)
+        if (!selected || !selectable)
             return;
         
         Path2D selectorIndicator = new Path2D.Double();

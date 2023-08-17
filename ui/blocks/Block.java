@@ -65,10 +65,7 @@ public class Block {
         this.x = (xGrid - 1) * diagonalLength;
         this.y = (yGrid - 1) * diagonalLength;
         
-        this.diagonalLength = diagonalLength;
-        this.diagonalHalfLength = diagonalLength / 2d;
-        this.diagonalHHLength = diagonalHalfLength / 2d;
-        this.diagonalHHHLength = diagonalHHLength / 2d;
+        setDiagonalLength(diagonalLength);
     }
     
     public void createFaces() {
@@ -176,42 +173,44 @@ public class Block {
         return name;
     }
     
-    private void fixCoordinates() {
-        int xMin = (int) xGrid;
-        int xMax = xMin + 1;
-        
-        double x1Quart = xMin + 0.25;
-        double x2Quart = x1Quart + 0.25;
-        double x3Quart = x2Quart + 0.25;
-        
-        int yMin = (int) yGrid;
-        int yMax = yMin + 1;
-        
-        double y1Quart = yMin + 0.25;
-        double y2Quart = y1Quart + 0.25;
-        double y3Quart = y2Quart + 0.25;
-        
-        if (xGrid <= xMin)
-            xGrid = xMin;
-        else if (xGrid > xMin && xGrid <= x1Quart)
-            xGrid = x1Quart;
-        else if (xGrid > x1Quart && xGrid <= x2Quart)
-            xGrid = x2Quart;
-        else if (xGrid > x2Quart && xGrid <= x3Quart)
-            xGrid = x3Quart;
-        else if (xGrid > x3Quart && xGrid <= xMax)
-            xGrid = xMax;
-        
-        if (yGrid <= yMin)
-            yGrid = yMin;
-        else if (yGrid >= yMin && yGrid <= y1Quart)
-            yGrid = y1Quart;
-        else if (yGrid > y1Quart && yGrid <= y2Quart)
-            yGrid = y2Quart;
-        else if (yGrid > y2Quart && yGrid <= y3Quart)
-            yGrid = y3Quart;
-        else if (yGrid > y3Quart && yGrid <= yMax)
-            yGrid = yMax;
+    private void calculateCoordinates(boolean fixCoordinates) {
+        if (fixCoordinates) {
+            int xMin = (int) xGrid;
+            int xMax = xMin + 1;
+
+            double x1Quart = xMin + 0.25;
+            double x2Quart = x1Quart + 0.25;
+            double x3Quart = x2Quart + 0.25;
+
+            int yMin = (int) yGrid;
+            int yMax = yMin + 1;
+
+            double y1Quart = yMin + 0.25;
+            double y2Quart = y1Quart + 0.25;
+            double y3Quart = y2Quart + 0.25;
+
+            if (xGrid <= xMin)
+                xGrid = xMin;
+            else if (xGrid > xMin && xGrid <= x1Quart)
+                xGrid = x1Quart;
+            else if (xGrid > x1Quart && xGrid <= x2Quart)
+                xGrid = x2Quart;
+            else if (xGrid > x2Quart && xGrid <= x3Quart)
+                xGrid = x3Quart;
+            else if (xGrid > x3Quart && xGrid <= xMax)
+                xGrid = xMax;
+
+            if (yGrid <= yMin)
+                yGrid = yMin;
+            else if (yGrid >= yMin && yGrid <= y1Quart)
+                yGrid = y1Quart;
+            else if (yGrid > y1Quart && yGrid <= y2Quart)
+                yGrid = y2Quart;
+            else if (yGrid > y2Quart && yGrid <= y3Quart)
+                yGrid = y3Quart;
+            else if (yGrid > y3Quart && yGrid <= yMax)
+                yGrid = yMax;
+        }
         
         this.x = (xGrid - 1) * diagonalLength;
         this.y = (yGrid - 1) * diagonalLength;
@@ -221,27 +220,31 @@ public class Block {
         return xGrid;
     }
 
-    public void setXGrid(double xGrid) {
+    public void setXGrid(double xGrid, boolean fixCoordinates) {
         this.xGrid = xGrid;
         
-        fixCoordinates();
+        calculateCoordinates(fixCoordinates);
     }
 
     public double getYGrid() {
         return yGrid;
     }
 
-    public void setYGrid(double yGrid) {
+    public void setYGrid(double yGrid, boolean fixCoordinates) {
         this.yGrid = yGrid;
         
-        fixCoordinates();
+        calculateCoordinates(fixCoordinates);
     }
     
-    public void setCoordinates(double xGrid, double yGrid) {
+    public void setCoordinates(double xGrid, double yGrid, boolean fixCoordinates) {
         this.xGrid = xGrid;
         this.yGrid = yGrid;
         
-        fixCoordinates();
+        calculateCoordinates(fixCoordinates);
+    }
+    
+    public Point2D getCoordinates() {
+        return new Point2D.Double(xGrid, yGrid);
     }
 
     public double getDiagonalLength() {
@@ -259,11 +262,40 @@ public class Block {
     }
     
     public boolean isPointInside(Point2D p) {
-        return topFace.contains(p) || rightFace.contains(p) || leftFace.contains(p);
+        boolean onTopFace = topFace.contains(p);
+        boolean onRightFace = rightFace.contains(p);
+        boolean onLeftFace = leftFace.contains(p);
+        
+        if (topFaceVisible && onTopFace)
+            return true;
+        
+        if (rightFaceVisible && onRightFace)
+            return true;
+        
+        if (leftFaceVisible && onLeftFace)
+            return true;
+        
+        if (!topFaceVisible && !rightFaceVisible && !leftFaceVisible)
+            return onTopFace || onRightFace || onLeftFace;
+        
+        return false;
     }
     
     public boolean isPointClose(Point2D p, int radius) {
         return pt1.distance(p) <= radius;
+    }
+    
+    public boolean doCoordinatesEqual(Point2D p) {
+        return this.xGrid == p.getX() && this.yGrid == p.getY();
+    }
+    
+    public Point2D [] getAdjacentPoints() {
+        return new Point2D[] {
+            new Point2D.Double(xGrid + 0.5, yGrid - 0.25), // Upper right
+            new Point2D.Double(xGrid + 0.5, yGrid + 0.25), // Bottom right
+            new Point2D.Double(xGrid - 0.5, yGrid - 0.25), // Upper left
+            new Point2D.Double(xGrid - 0.5, yGrid + 0.25)  // Bottom left
+        };
     }
 
     public boolean isSelected() {
@@ -322,7 +354,7 @@ public class Block {
     }
     
     public void copyProperties(Block old) {
-        setCoordinates(old.xGrid, old.yGrid);
+        setCoordinates(old.xGrid, old.yGrid, false);
         
         this.topFaceVisible = old.topFaceVisible;
         this.rightFaceVisible = old.rightFaceVisible;

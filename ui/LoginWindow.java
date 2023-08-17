@@ -20,8 +20,10 @@ import utils.WorldUtilities;
  */
 public class LoginWindow extends Window {
     public final UIPreferences uiPreferences = new UIPreferences(this);
+    public final FloatingMessage messagePane = new FloatingMessage(435, 260);
     
     private final Label title = new Label(LabelType.BOLD_TITLE, "Defend The Clock");
+    private final Label subtitle = new Label(LabelType.SUBTITLE, "Worlds");
     
     private final ImageButton backPageButton = new ImageButton(ImageButtonArrangement.ONLY_TINY_IMAGE);
     private final ImageButton nextPageButton = new ImageButton(ImageButtonArrangement.ONLY_TINY_IMAGE);
@@ -78,31 +80,60 @@ public class LoginWindow extends Window {
         usernameField.setHorizontalAlignment(TextAlignment.CENTER);
         
         gamemodeSelector.setPreferredSize(new Dimension(305, 22));
-        gamemodeSelector.addOption("Easy", false, (ActionListener) -> {
-            mode = GameModes.EASY;
-        });
-        gamemodeSelector.addOption("Construction", false, (ActionListener) -> {
-            mode = GameModes.CONSTRUCTION;
-        });
+        for (GameModes m : GameModes.values()) {
+            String name = m.name();
+            name = name.charAt(0) + name.substring(1).toLowerCase();
+            
+            gamemodeSelector.addOption(name, false, (ActionListener) -> {
+                mode = m;
+            });
+        }
         
         uiPreferencesButton.addActionListener((Action) -> {
             uiPreferences.toggleVisibility();
         });
         
         newWorldButton.addActionListener((Action) -> {
-            String user = usernameField.getText();
-            if (user.isEmpty())
-                return;
-            
             hideWindow();
-            new GameWindow(this, null, GameModes.CONSTRUCTION, user).showWindow();
+            new GameWindow(this, null, GameModes.CONSTRUCTION, "").showWindow();
         });
         
         enterButton.setPreferredSize(new Dimension(380, 22));
         enterButton.addActionListener((Action) -> {
             String user = usernameField.getText();
-            if (mode == null || selectedWorld == null || user.isEmpty())
+            user = user.isEmpty() ? "Guest" : user;
+            
+            if (selectedWorld == null) {
+                messagePane.showMessage("Select a world", "Please select a world", false);
                 return;
+            }
+            
+            if (mode == null) {
+                messagePane.showMessage("Select a mode", "Please select a gamemode", false);
+                return;
+            }
+            
+            if (mode != GameModes.CONSTRUCTION && !selectedWorld.oneClockBlockFound) {
+                messagePane.showMessage("Invalid world", 
+                        "The selected world is unplayable as there's no a clock block or there\n"
+                        + "are multiple, please use CONSTRUCTION mode to fix the problem", false);
+                return;
+            }
+            
+            if (mode != GameModes.CONSTRUCTION && !selectedWorld.oneSpawnPathBlockFound) {
+                messagePane.showMessage("Invalid world", 
+                        "The selected world is unplayable as there's no a enemy spawn block\n"
+                        + "or there are multiple, please use CONSTRUCTION mode to fix the\nproblem", false);
+                return;
+            }
+            
+            if (mode != GameModes.CONSTRUCTION && !selectedWorld.allPathBlockTogether) {
+                messagePane.showMessage("Invalid world", 
+                        "The selected world is unplayable as there's no path blocks or not all\n"
+                        + "are connected, please use CONSTRUCTION mode to fix the problem\n\n"
+                        + "Note: Path, Spawn and Clock blocks must be connected", false);
+                return;
+            }
             
             hideWindow();
             new GameWindow(this, selectedWorld, mode, user).showWindow();
@@ -111,6 +142,7 @@ public class LoginWindow extends Window {
         
         
         add(title, UIAlignment.WEST, UIAlignment.WEST, 30, UIAlignment.NORTH, UIAlignment.NORTH, 30);
+        add(subtitle, title, UIAlignment.WEST, UIAlignment.WEST, 0, UIAlignment.NORTH, UIAlignment.SOUTH, 10);
         
         add(backPageButton, previews[0], UIAlignment.EAST, UIAlignment.WEST, -5, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, -15);
         add(nextPageButton, previews[2], UIAlignment.WEST, UIAlignment.EAST, 5, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, -15);
@@ -131,8 +163,12 @@ public class LoginWindow extends Window {
     
     private void loadWorlds() {
         int loaded = 0;
-        for (int i = page * 3; i < worlds.length && loaded < 3; i++, loaded++)
-            previews[loaded].setPreview(WorldUtilities.loadWorld(worlds[i]));
+        for (int i = page * 3; i < worlds.length && loaded < 3; i++, loaded++) {
+            World w = WorldUtilities.loadWorld(worlds[i]);
+            w.setEnemyBlocksVisible(false);
+            w.verifyWorldPath();
+            previews[loaded].setPreview(w);
+        }
         
         if (loaded != 2) {
             for (; loaded < 3; loaded++)

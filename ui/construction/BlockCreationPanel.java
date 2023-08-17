@@ -28,7 +28,7 @@ public class BlockCreationPanel extends Panel {
     private final Label title = new Label(LabelType.BOLD_TITLE, "Create block");
     
     private final Label newBlockSubtitle = new Label(LabelType.SUBTITLE, "New");
-    private final ComboBox blockTypeSelector = new ComboBox("Block type", "Wire", true);
+    private final ComboBox blockTypeSelector = new ComboBox("Block type", "Wire", false);
     
     private Block previewBlock = BlockFactory.createBlock(1, 1, 120, BlockTypes.WIRE);
     private final JComponent blockPreview = new JComponent() {

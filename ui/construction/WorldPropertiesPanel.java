@@ -92,7 +92,6 @@ public class WorldPropertiesPanel extends Panel {
             
             if (confirmOverwrite || !worldExists) {
                 confirmOverwrite = false;
-                saveWorldButton.setText("World saved!");
                 
                 new Thread(() -> {
                     int time = 2;
@@ -106,7 +105,7 @@ public class WorldPropertiesPanel extends Panel {
                     });
                 }).start();
                 
-                container.saveWorld();
+                saveWorldButton.setText(container.saveWorld() ? "World saved!" : "FAILED");
                 return;
             }
             
