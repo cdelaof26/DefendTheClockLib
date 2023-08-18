@@ -1,5 +1,9 @@
 # Defend The Clock
 
+![Level selector v0. 3. 0](https://github.com/cdelaof26/DefendTheClockLib/blob/main/images/levelSelector_v0.3.0.png?raw=true)
+
+![In game v0. 3. 0](https://github.com/cdelaof26/DefendTheClockLib/blob/main/images/inGame_v0.3.0.png?raw=true)
+
 ### What is this?
 
 This is a basic open source minigame with in-built world creator.
@@ -36,6 +40,22 @@ $ java defendtheclocklib/DefendTheClockLib
 
 
 ### Changelog
+
+### v0.3.0
+- Added three maps: Meadow Island, Desert Island and Remote Island
+- Added option to display the route that monsters will follow in `WorldPropertiesPanel`
+- Added a layer selector in `ArrangeBlockPanel`
+- Added delete button to `WorldPropertiesPanel`
+- In an attempt to improve the CPU usage:
+  - Added painting by zones to `EnemyRenderComponent`
+  - Invisible blocks will be removed for a `gamemode != GameModes.CONSTRUCTION`
+- Added support for rendering multiple monsters
+- Added smoothness to monsters' movement
+- Added shadow to cube monsters
+- Added health bar to clock and cube monsters
+- Added level label
+- Added `StarsMenu` a panel to exchange stars for golden dollars
+- Fixed `BlockDragger` not loading the properties of a block in certain cases
 
 ### v0.2.0
 - Added a very early game ui for easy and other modes

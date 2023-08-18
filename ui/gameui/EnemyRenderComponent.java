@@ -4,94 +4,153 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import ui.GameWindow;
 import ui.enemies.CubeMonster;
 import ui.enemies.EyeMonster;
 import ui.enemies.FaceMonster;
-import ui.enums.CubeMonsterFacing;
 
 /**
  *
  * @author cristopher
  */
 public class EnemyRenderComponent extends JComponent {
-    private CubeMonster monster;
-    private int lastCoordinate = 0;
+    private Timer renderRefresh;
+    
+    private int steps = 0;
+    
+    private boolean creatingEnemies = false;
+    
+    private final ArrayList<CubeMonster> cubeMonsters = new ArrayList<>();
+    private final int cubeMonsterWidth;
+    private boolean allEnemiesDead = true;
     
     
-    private final Timer renderRefresh;
+    private final GameUI gameUI;
     
     
-    private final GameWindow mainWindow;
-    
-    
-    public EnemyRenderComponent(GameWindow mainWindow) {
-        this.mainWindow = mainWindow;
-        renderRefresh = new Timer(100, (Action) -> {
-            if (mainWindow.isPaused())
-                return;
-
-            moveEnemies();
-            repaint();
-        });
+    public EnemyRenderComponent(GameUI container) {
+        this.gameUI = container;
+        
+        cubeMonsterWidth = (int) this.gameUI.mainWindow.world.getGridLength();
         
         initEnemyRenderComponent();
     }
 
     private void initEnemyRenderComponent() {
+        updateNumberOfSteps(0);
         renderRefresh.start();
         setPreferredSize(new Dimension(1000, 600));
-//        setOpaque(false);
+    }
+    
+    public void updateNumberOfSteps(int stepsGain) {
+        gameUI.stats.updateNumberOfSteps(stepsGain);
+        
+        renderRefresh = new Timer(gameUI.stats.getNumberOfSteps() / 100, (Action) -> {
+            if (gameUI.isPaused())
+                return;
+
+            moveEnemies();
+        });
     }
     
     @Override
     protected void paintComponent(Graphics g) {
-        if (monster != null)
-            monster.paintBlock((Graphics2D) g);
-        
-//        g.setColor(Color.RED);
-//        g.fillRect(0, 0, getPreferredSize().width, getPreferredSize().height);
+//        for (int i = cubeMonsters.size() - 1; i >= 0; i--)
+//            cubeMonsters.get(i).paintBlock((Graphics2D) g);
+        for (CubeMonster cm : cubeMonsters)
+            cm.paintBlock((Graphics2D) g);
     }
     
-    public void createNewCubeMonster(Point2D spawnCoordinates, double diagonalLength) {
+    public void generateMonsterHorde(int monsterAmount, int health, Point2D spawnCoordinates) {
+        creatingEnemies = true;
+        allEnemiesDead = false;
+        
+        new Thread(() -> {
+            for (int i = 0; i < monsterAmount; i++) {
+                if (gameUI.isPaused()) {
+                    i--;
+                    try { Thread.sleep(1500); } catch (InterruptedException ex) { }
+                }
+                
+                SwingUtilities.invokeLater(() -> {
+                    createNewCubeMonster(health, spawnCoordinates);
+                });
+                
+                try { Thread.sleep(1500); } catch (InterruptedException ex) { }
+            }
+        }).start();
+    }
+    
+    public void createNewCubeMonster(int health, Point2D spawnCoordinates) {
+        CubeMonster cm;
+        
         if ((int) (Math.random() * 10) % 2 == 0)
-            monster = new EyeMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), diagonalLength);
+            cm = new EyeMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), cubeMonsterWidth, health);
         else
-            monster = new FaceMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), diagonalLength);
+            cm = new FaceMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), cubeMonsterWidth, health);
         
-        lastCoordinate = 0;
+        cm.setNumberOfSteps(gameUI.stats.getNumberOfSteps());
+        cm.setNextTilePosition(gameUI.mainWindow.world.getEnemyPathCoordinate(cm.getLastCoordinate()));
+        cm.defineFacingDirection();
+        cubeMonsters.add(cm);
+        
+        creatingEnemies = false;
     }
     
-    private CubeMonsterFacing getFacingDirection(Point2D oldCoordinates, Point2D newCoordinates) {
-        double xDifference = newCoordinates.getX() - oldCoordinates.getX();
-        double yDifference = newCoordinates.getY() - oldCoordinates.getY();
-        
-        if (xDifference < 0 && yDifference > 0)
-            return CubeMonsterFacing.LEFT;
-        
-        if (xDifference > 0 && yDifference > 0)
-            return CubeMonsterFacing.RIGHT;
-        
-        return CubeMonsterFacing.NONE;
+    private void moveCubeMonsters() {
+        for (CubeMonster cm : cubeMonsters) {
+            cm.moveToNextLocation();
+            repaint(cm.getPaintArea());
+        }
+    }
+
+    public boolean areAllEnemiesDead() {
+        return allEnemiesDead;
     }
     
     private void moveEnemies() {
-        if (monster == null)
+        if (creatingEnemies)
             return;
         
-        Point2D p = mainWindow.world.getEnemyPathCoordinate(lastCoordinate);
-        if (p == null) {
-            monster = null;
+        if (cubeMonsters.isEmpty()) {
+            allEnemiesDead = true;
             return;
         }
         
-        Point2D lastCoordinates = monster.getCoordinates();
+        int i = 0;
+        while (i < cubeMonsters.size()) {
+            CubeMonster cm = cubeMonsters.get(i);
+
+            if (!cm.movementEnded()) {
+                i++;
+                continue;
+            } else {
+                cm.increaseLastCoordinate();
+            }
+
+            boolean remove = cm.setNextTilePosition(gameUI.mainWindow.world.getEnemyPathCoordinate(cm.getLastCoordinate()));
+            if (remove) {
+                gameUI.decreaseClockHealth();
+                cubeMonsters.remove(i);
+                repaint(cm.getPaintArea());
+                continue;
+            }
+
+            cm.defineFacingDirection();
+
+            i++;
+        }
+
+        if (cubeMonsters.isEmpty()) {
+            steps = 0;
+            return;
+        }
         
-        monster.setCoordinates(p.getX(), p.getY(), false);
-        monster.setFacingDirection(getFacingDirection(lastCoordinates, p));
+        moveCubeMonsters();
         
-        lastCoordinate++;
+        steps++;
     }
 }

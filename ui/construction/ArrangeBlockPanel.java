@@ -44,6 +44,17 @@ public class ArrangeBlockPanel extends Panel {
     private final ImageButton sentToFrontButton = new ImageButton("Front", false, ImageButtonArrangement.UP_IMAGE);
     private final ImageButton sentToBackButton = new ImageButton("Back", false, ImageButtonArrangement.UP_IMAGE);
     
+    private final JLabel layerUpdater = new JLabel() {
+        @Override
+        public void setText(String text) {
+            if (text.isEmpty() || loadingBlock)
+                return;
+            
+            container.setSelectedBlockIndex(Integer.parseInt(text));
+        }
+    };
+    private final NumberSelector positionInStackSelector = new NumberSelector("Layer", 0, 0, 100, 1, layerUpdater);
+    private final Label amountOfBlockLabel = new Label(LabelType.BODY, "Blocks: 0");
     
     private boolean pressed = false;
     private boolean increaseValue;
@@ -115,6 +126,11 @@ public class ArrangeBlockPanel extends Panel {
             container.moveSelectedBlockTo(false);
         });
         
+        
+        positionInStackSelector.setPreferredSize_(new Dimension(190, 22));
+        
+        
+        
         AppUtilities.addBundleImagesToImageButton(moveForwardButton, "ForwardStack", 20);
         AppUtilities.addBundleImagesToImageButton(moveBackwardButton, "BackwardStack", 20);
         AppUtilities.addBundleImagesToImageButton(sentToFrontButton, "FrontStack", 20);
@@ -132,6 +148,9 @@ public class ArrangeBlockPanel extends Panel {
         add(moveBackwardButton, this, moveForwardButton, UIAlignment.EAST, UIAlignment.EAST, -20, UIAlignment.NORTH, UIAlignment.NORTH, 0);
         add(sentToFrontButton, layerPositionLabel, moveForwardButton, UIAlignment.WEST, UIAlignment.WEST, 0, UIAlignment.NORTH, UIAlignment.SOUTH, 10);
         add(sentToBackButton, moveBackwardButton, sentToFrontButton, UIAlignment.EAST, UIAlignment.EAST, 0, UIAlignment.NORTH, UIAlignment.NORTH, 0);
+        
+        add(positionInStackSelector, this, sentToFrontButton, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.NORTH, UIAlignment.SOUTH, 10);
+        add(amountOfBlockLabel, sentToFrontButton, positionInStackSelector, UIAlignment.WEST, UIAlignment.WEST, 0, UIAlignment.NORTH, UIAlignment.SOUTH, 10);
     }
 
     private void modValue() {
@@ -143,9 +162,10 @@ public class ArrangeBlockPanel extends Panel {
         }
         
         container.moveSelectedBlockALayer(increaseValue);
+        positionInStackSelector.setValue(container.getSelectedBlockIndex());
     }
     
-    public void loadProperties(Block b) {
+    public void loadProperties(Block b, int blockLayer, int amountOfBlocks) {
         if (b == null) {
             xCoordinateSelector.setValue(1);
             yCoordinateSelector.setValue(1);
@@ -154,8 +174,14 @@ public class ArrangeBlockPanel extends Panel {
         }
         
         loadingBlock = true;
+        
         xCoordinateSelector.setValue((int) b.getXGrid());
         yCoordinateSelector.setValue((int) b.getYGrid());
+        
+        positionInStackSelector.setMaximumValue(amountOfBlocks);
+        positionInStackSelector.setValue(blockLayer);
+        amountOfBlockLabel.setText("Blocks: " + amountOfBlocks);
+        
         loadingBlock = false;
     }
 }

@@ -2,6 +2,7 @@ package utils;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -21,6 +22,37 @@ public class WorldUtilities {
     public static final File UNIX_PATH = FileUtilities.joinPath(LibUtilities.USER_HOME, ".dtc_worlds");
     
     public static final File WORLDS_DIRECTORY = !LibUtilities.IS_UNIX_LIKE ? WIN_PATH : UNIX_PATH;
+    
+    
+    static {
+        // Copy bundled worlds to user worlds
+        String meadowIsland = "Meadow_Island.dtcl";
+        String desertIsland = "Desert_Island.dtcl";
+        String remoteIsland = "Remote_Island.dtcl";
+        String packagePath = "defaultworlds/";
+        
+        String meadowIslandPath = packagePath + meadowIsland;
+        String desertIslandPath = packagePath + desertIsland;
+        String remoteIslandPath = packagePath + remoteIsland;
+        
+        InputStream meadowIslandIS = ClassLoader.getSystemClassLoader().getResourceAsStream(meadowIslandPath);
+        InputStream desertIslandIS = ClassLoader.getSystemClassLoader().getResourceAsStream(desertIslandPath);
+        InputStream remoteIslandIS = ClassLoader.getSystemClassLoader().getResourceAsStream(remoteIslandPath);
+        
+        File meadowIslandFile = FileUtilities.joinPath(WORLDS_DIRECTORY, meadowIsland);
+        File desertIslandFile = FileUtilities.joinPath(WORLDS_DIRECTORY, desertIsland);
+        File remoteIslandFile = FileUtilities.joinPath(WORLDS_DIRECTORY, remoteIsland);
+        
+        if (!meadowIslandFile.exists())
+            FileUtilities.writeFile(meadowIslandIS, meadowIslandFile, true);
+        
+        if (!desertIslandFile.exists())
+            FileUtilities.writeFile(desertIslandIS, desertIslandFile, true);
+        
+        if (!remoteIslandFile.exists())
+            FileUtilities.writeFile(remoteIslandIS, remoteIslandFile, true);
+    }
+    
     
     public static File createWorldFile(World w) {
         return FileUtilities.joinPath(WORLDS_DIRECTORY, w.getName(true) + ".dtcl");

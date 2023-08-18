@@ -25,11 +25,4 @@ public class EnemyPathBlock extends Tile {
 
     @Override
     public void setLeftFaceVisible(boolean leftFaceVisible) { }
-    
-    public void setVisible(boolean b) {
-        topFaceVisible = b;
-        rightFaceVisible = b;
-        leftFaceVisible = b;
-        selectable = b;
-    }
 }

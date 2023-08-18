@@ -36,33 +36,17 @@ public class FaceMonster extends CubeMonster {
     protected Path2D leftFaceRightEye;
     
     
-    public FaceMonster(double xGrid, double yGrid, double diagonalLength) {
+    public FaceMonster(double xGrid, double yGrid, double diagonalLength, int health) {
         super(xGrid, yGrid, diagonalLength);
         
         name = "FaceMonster";
+        
+        setMaximumHealth(health);
     }
 
     @Override
     public void createFaces() {
         super.createFaces();
-        
-//        // if diagonalLength = 120
-//        faceMonsterConstant0 = diagonalLength * 0.0916666667; // 11
-//        faceMonsterConstant1 = diagonalLength * 0.125;        // 15
-//        faceMonsterConstant2 = diagonalLength * 0.15;         // 18
-//        faceMonsterConstant3 = diagonalLength * 0.2833333333; // 34
-//        faceMonsterConstant4 = diagonalLength * 0.2583333333; // 31
-//        faceMonsterConstant5 = faceMonsterConstant3 - faceMonsterConstant0; // 23
-//        faceMonsterConstant6 = faceMonsterConstant0 + faceMonsterConstant1; // 26
-//        faceMonsterConstant7 = faceMonsterConstant1 + faceMonsterConstant2; // 33
-//        faceMonsterConstant8 = diagonalLength * 0.225;                      // 27
-//        faceMonsterConstant9 = faceMonsterConstant0  + faceMonsterConstant8;  // 38
-//        faceMonsterConstant10 = faceMonsterConstant5  + faceMonsterConstant6; // 49
-//        faceMonsterConstant11 = diagonalLength * 0.3416666667;                // 41
-//        faceMonsterConstant12 = diagonalLength * 0.05;                        // 6
-//        faceMonsterConstant13 = diagonalLength * 0.325;                       // 39
-//        faceMonsterConstant14 = diagonalLength * 0.4666666667;                // 56
-//        faceMonsterConstant15 = diagonalLength * 0.3333333333;                // 40
         
         if (facingDirection == CubeMonsterFacing.RIGHT) {
             rightFaceRightEye = new Path2D.Double();
@@ -121,14 +105,9 @@ public class FaceMonster extends CubeMonster {
 
     @Override
     public void paintBlock(Graphics2D g2D) {
-        createFaces();
-
-        g2D.setColor(topFaceColor);
-        g2D.fill(topFace);
-        g2D.fill(rightFace);
+        super.paintBlock(g2D);
         
-        g2D.setColor(leftFaceColor);
-        g2D.fill(leftFace);
+        createFaces();
 
         g2D.setColor(Color.BLACK);
         if (facingDirection == CubeMonsterFacing.RIGHT) {
@@ -164,6 +143,4 @@ public class FaceMonster extends CubeMonster {
         faceMonsterConstant14 = diagonalLength * 0.4666666667;                // 56
         faceMonsterConstant15 = diagonalLength * 0.3333333333;                // 40
     }
-
-    
 }

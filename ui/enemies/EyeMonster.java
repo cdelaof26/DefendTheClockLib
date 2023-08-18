@@ -31,7 +31,7 @@ public class EyeMonster extends CubeMonster {
     private int irisModifier;
     
     
-    public EyeMonster(double xGrid, double yGrid, double diagonalLength) {
+    public EyeMonster(double xGrid, double yGrid, double diagonalLength, int health) {
         super(xGrid, yGrid, diagonalLength);
         
         int colorModifier0 = (int) (Math.random() * 255);
@@ -40,7 +40,10 @@ public class EyeMonster extends CubeMonster {
         
         name = "EyeMonster";
         topFaceColor = new Color(colorModifier0, colorModifier1, colorModifier2);
+        rightFaceColor = topFaceColor;
         leftFaceColor = topFaceColor.darker();
+        
+        setMaximumHealth(health);
     }
 
     @Override
@@ -104,14 +107,9 @@ public class EyeMonster extends CubeMonster {
     
     @Override
     public void paintBlock(Graphics2D g2D) {
+        super.paintBlock(g2D);
+        
         createFaces();
-        
-        g2D.setColor(topFaceColor);
-        g2D.fill(topFace);
-        g2D.fill(rightFace);
-        
-        g2D.setColor(leftFaceColor);
-        g2D.fill(leftFace);
         
         if (facingDirection == CubeMonsterFacing.RIGHT) {
             g2D.setColor(Color.BLACK);

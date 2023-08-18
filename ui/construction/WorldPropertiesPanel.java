@@ -42,11 +42,14 @@ public class WorldPropertiesPanel extends Panel {
     public final ColorPicker fillColorPicker = new ColorPicker(fillColorUpdater);
     
     private final CheckField showGridCheckField = new CheckField("Show grid", false, true);
+    private final CheckField paintRouteCheckField = new CheckField("Paint route", false, false);
     
     private final ColorButton saveWorldButton = new ColorButton("Save world");
+    private final ColorButton deleteWorldButton = new ColorButton("Delete world");
     
     
     private boolean confirmOverwrite = false;
+    private boolean confirmDeletion = false;
     
     
     private final BuildPanel container;
@@ -86,11 +89,14 @@ public class WorldPropertiesPanel extends Panel {
             container.setWorldGridVisible(!showGridCheckField.isChecked());
         });
         
+        paintRouteCheckField.setPreferredSize(new Dimension(190, 22));
+        paintRouteCheckField.addActionListener((Action) -> {
+            container.setWorldRouteVisible(!paintRouteCheckField.isChecked());
+        });
+        
         saveWorldButton.setPreferredSize(new Dimension(170, 22));
         saveWorldButton.addActionListener((Action) -> {
-            boolean worldExists = container.worldExist();
-            
-            if (confirmOverwrite || !worldExists) {
+            if (confirmOverwrite || !container.worldExist()) {
                 confirmOverwrite = false;
                 
                 new Thread(() -> {
@@ -137,6 +143,55 @@ public class WorldPropertiesPanel extends Panel {
             }).start();
         });
         
+        deleteWorldButton.setPreferredSize(new Dimension(170, 22));
+        deleteWorldButton.addActionListener((Action) -> {
+            if (confirmDeletion) {
+                confirmDeletion = false;
+                
+                new Thread(() -> {
+                    int time = 2;
+                    while (time > -1) {
+                        try { Thread.sleep(1000); } catch (InterruptedException ex) { }
+                        time--;
+                    }
+                    
+                    SwingUtilities.invokeLater(() -> {
+                        deleteWorldButton.setText("Delete world");
+                    });
+                }).start();
+                
+                deleteWorldButton.setText(container.deleteWorld() ? "World deleted" : "FAILED");
+                return;
+            }
+            
+            confirmDeletion = true;
+            
+            new Thread(() -> {
+                int time = 3;
+                while (time > -1) {
+                    if (!confirmDeletion)
+                        return;
+                    
+                    final int t = time;
+                    try {
+                        SwingUtilities.invokeAndWait(() -> {
+                            deleteWorldButton.setText("Are you sure? (" + t + "s)");
+                        });
+                    } catch (InterruptedException | InvocationTargetException ex) {
+                        ex.printStackTrace();
+                    }
+                    
+                    try { Thread.sleep(1000); } catch (InterruptedException ex) { }
+                    time--;
+                }
+                
+                confirmDeletion = false;
+                SwingUtilities.invokeLater(() -> {
+                    deleteWorldButton.setText("Delete world");
+                });
+            }).start();
+        });
+        
         
         add(title, this, this, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.NORTH, UIAlignment.NORTH, 0);
         
@@ -146,6 +201,9 @@ public class WorldPropertiesPanel extends Panel {
         
         add(showGridCheckField, this, fillColorPicker, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.NORTH, UIAlignment.SOUTH, 10);
         
-        add(saveWorldButton, this, this, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.SOUTH, UIAlignment.SOUTH, -20);
+        add(paintRouteCheckField, this, showGridCheckField, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.NORTH, UIAlignment.SOUTH, 10);
+        
+        add(saveWorldButton, this, deleteWorldButton, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.SOUTH, UIAlignment.NORTH, -20);
+        add(deleteWorldButton, this, this, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.SOUTH, UIAlignment.SOUTH, -20);
     }
 }

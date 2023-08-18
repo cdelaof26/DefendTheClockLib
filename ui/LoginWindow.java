@@ -131,7 +131,8 @@ public class LoginWindow extends Window {
                 messagePane.showMessage("Invalid world", 
                         "The selected world is unplayable as there's no path blocks or not all\n"
                         + "are connected, please use CONSTRUCTION mode to fix the problem\n\n"
-                        + "Note: Path, Spawn and Clock blocks must be connected", false);
+                        + "Note: Path, Spawn and Clock blocks must be connected, multiple\n"
+                        + "paths and dead ends are not allowed", false);
                 return;
             }
             
@@ -180,6 +181,9 @@ public class LoginWindow extends Window {
         worlds = WorldUtilities.WORLDS_DIRECTORY.listFiles((dir, name) -> {
             return name.endsWith(".dtcl");
         });
+        
+        selectedWorld = null;
+        enterButton.setText("Enter");
         
         backPageButton.setVisible(worlds.length > 3);
         nextPageButton.setVisible(worlds.length > 3);

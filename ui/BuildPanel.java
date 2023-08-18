@@ -120,6 +120,13 @@ public class BuildPanel extends Panel {
         mainWindow.world.setGridVisible(gridVisible);
     }
     
+    public void setWorldRouteVisible(boolean paintRoute) {
+        if (updatingWorld)
+            return;
+        
+        mainWindow.world.setPaintRoute(paintRoute);
+    }
+    
     public boolean worldExist() {
         return WorldUtilities.createWorldFile(mainWindow.world).exists();
     }
@@ -128,15 +135,19 @@ public class BuildPanel extends Panel {
         return WorldUtilities.saveWorld(mainWindow.world);
     }
     
+    public boolean deleteWorld() {
+        return WorldUtilities.createWorldFile(mainWindow.world).delete();
+    }
+    
     public void loadBlockProperties(Block b) {
         updatingBlock = true;
         blockCreationPanel.loadProperties(b);
-        arrangeBlockPanel.loadProperties(b);
+        arrangeBlockPanel.loadProperties(b, mainWindow.world.blockSelector.getSelectedBlockIndex(), mainWindow.world.getBlocksAmount());
         updatingBlock = false;
     }
     
     public void updateBlockCoordinates() {
-        arrangeBlockPanel.loadProperties(mainWindow.world.blockSelector.getSelectedBlock());
+        arrangeBlockPanel.loadProperties(mainWindow.world.blockSelector.getSelectedBlock(), mainWindow.world.blockSelector.getSelectedBlockIndex(), mainWindow.world.getBlocksAmount());
     }
     
     public void updateVisibleFaces(boolean top, boolean right, boolean left) {
@@ -188,6 +199,15 @@ public class BuildPanel extends Panel {
     
     public void moveSelectedBlockTo(boolean front) {
         mainWindow.world.moveSelectedBlockTo(front);
+        mainWindow.world.repaint();
+    }
+    
+    public int getSelectedBlockIndex() {
+        return mainWindow.world.blockSelector.getSelectedBlockIndex();
+    }
+    
+    public void setSelectedBlockIndex(int index) {
+        mainWindow.world.moveSelectedBlockTo(index);
         mainWindow.world.repaint();
     }
     

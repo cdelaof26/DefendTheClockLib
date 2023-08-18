@@ -3,6 +3,7 @@ package ui;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -50,6 +51,7 @@ public class World extends JComponent implements ComponentSetup {
     public final BlockDragger blockDragger = new BlockDragger(this);
     
     private ArrayList<Block> blocks = new ArrayList<>();
+    private ClockBlock clockBlock;
     
     protected boolean allPathBlockTogether = false;
     protected boolean oneSpawnPathBlockFound = false;
@@ -58,6 +60,7 @@ public class World extends JComponent implements ComponentSetup {
     protected Point2D enemySpawnPoint = null;
     
     private LinkedList<Point2D> enemyPathCoordinates = new LinkedList<>();
+    protected boolean paintRoute = false;
     
     
     public GameWindow mainWindow = null;
@@ -169,7 +172,32 @@ public class World extends JComponent implements ComponentSetup {
         for (Block b : blocks)
             b.paintBlock(g2D);
         
-//        paintRoute(g2D);
+        if (paintRoute) {
+            verifyWorldPath();
+            paintRoute(g2D);
+        }
+    }
+    
+    public void paintRoute(Graphics2D g2D) {
+        if (enemyPathCoordinates.isEmpty())
+            return;
+        
+        g2D.setFont(UIProperties.APP_BOLD_FONT);
+        FontMetrics fm = g2D.getFontMetrics(UIProperties.APP_BOLD_FONT);
+        
+        for (int i = 0; i < enemyPathCoordinates.size(); i++) {
+            Point2D p = enemyPathCoordinates.get(i);
+            p.setLocation(((p.getX() - 1) * gridLength + (gridLength / 2) - 5) * UIProperties.getUiScale(), (p.getY() - 1) * gridLength * UIProperties.getUiScale());
+            
+            String s = "" + i;
+            Dimension sd = LibUtilities.getTextDimensions(s, UIProperties.APP_BOLD_FONT);
+            
+            g2D.setColor(Color.GREEN);
+            g2D.fill(new Rectangle2D.Double(p.getX(), p.getY(), sd.width, sd.height));
+            
+            g2D.setColor(Color.BLACK);
+            g2D.drawString(s, (float) p.getX(), (float) p.getY() + fm.getLeading() + fm.getAscent());
+        }
     }
     
     public final void addListeners() {
@@ -199,6 +227,11 @@ public class World extends JComponent implements ComponentSetup {
 
     public void setMainWindow(GameWindow mainWindow) {
         this.mainWindow = mainWindow;
+    }
+
+    public void setPaintRoute(boolean paintRoute) {
+        this.paintRoute = paintRoute;
+        repaint();
     }
     
     public final void resizeWorld(int width, int height) {
@@ -264,6 +297,10 @@ public class World extends JComponent implements ComponentSetup {
 
     public ArrayList<Block> getBlocks() {
         return blocks;
+    }
+    
+    public int getBlocksAmount() {
+        return blocks.size();
     }
 
     public void setBlocks(ArrayList<Block> blocks) {
@@ -362,12 +399,35 @@ public class World extends JComponent implements ComponentSetup {
         moveBlockLayer(front ? blocks.size() - 1 : 0);
     }
     
+    public void moveSelectedBlockTo(int layer) {
+        moveBlockLayer(layer);
+    }
+    
     public void setEnemyBlocksVisible(boolean b) {
         for (Block block : blocks) {
-            if (block instanceof EnemyPathBlock)
-                ((EnemyPathBlock) block).setVisible(b);
-            if (block instanceof EnemySpawnBlock)
-                ((EnemySpawnBlock) block).setVisible(b);
+            if ((block instanceof EnemyPathBlock) || (block instanceof EnemySpawnBlock))
+                block.setVisible(b);
+        }
+    }
+    
+    public void setClockBlockHealthBarVisible(boolean b) {
+        clockBlock.setHealthBarVisible(b);
+    }
+    
+    public void setClockHealth(int value) {
+        clockBlock.setHealth(value);
+        repaint(clockBlock.getHealthPaintArea());
+    }
+    
+    public void removeInvisibleBlocks() {
+        int i = 0;
+        while (i < blocks.size()) {
+            if (!blocks.get(i).isVisible()) {
+                blocks.remove(i);
+                continue;
+            }
+            
+            i++;
         }
     }
     
@@ -379,7 +439,7 @@ public class World extends JComponent implements ComponentSetup {
         int clockBlocks = 0;
         
         Block spawnBlock = null;
-        Block clockBlock = null;
+        clockBlock = null;
         
         for (int i = 0; i < blocks.size(); i++) {
             Block b = blocks.get(i);
@@ -391,7 +451,7 @@ public class World extends JComponent implements ComponentSetup {
                 spawnBlocks++;
             }
             if (b instanceof ClockBlock) {
-                clockBlock = b;
+                clockBlock = (ClockBlock) b;
                 clockBlocks++;
             }
         }
@@ -446,25 +506,10 @@ public class World extends JComponent implements ComponentSetup {
         enemyPathCoordinates.add(pathBlocks.get(0).getCoordinates());
         enemySpawnPoint = spawnBlock.getCoordinates();
         
+        blocks.remove(clockBlock);
+        blocks.add(clockBlock);
+        
 //        System.out.println(allPathBlockTogether ? "Route COMPLETE" : "Route incomplete");
-    }
-    
-    public void paintRoute(Graphics2D g2D) {
-        if (enemyPathCoordinates.isEmpty())
-            return;
-        
-        g2D.setFont(UIProperties.APP_TITLE_FONT);
-        
-        for (int i = 0; i < enemyPathCoordinates.size(); i++) {
-            Point2D p = enemyPathCoordinates.get(i);
-            p.setLocation(((p.getX() - 1) * gridLength + (gridLength/2) - 5) * UIProperties.getUiScale(), (p.getY() - 1) * gridLength * UIProperties.getUiScale());
-            
-            g2D.setColor(Color.GREEN);
-            g2D.fill(new Rectangle2D.Double(p.getX(), p.getY(), 10, 10));
-            
-            g2D.setColor(Color.BLACK);
-            g2D.drawString("" + i, (float) p.getX(), (float) p.getY());
-        }
     }
     
     public HashMap<String, String> collectProperties() {

@@ -235,10 +235,25 @@ public class Block {
         
         calculateCoordinates(fixCoordinates);
     }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
     
     public void setCoordinates(double xGrid, double yGrid, boolean fixCoordinates) {
         this.xGrid = xGrid;
         this.yGrid = yGrid;
+        
+        calculateCoordinates(fixCoordinates);
+    }
+    
+    public void moveBlockCoordinates(double xGridIncrement, double yGridIncrement, boolean fixCoordinates) {
+        this.xGrid += xGridIncrement;
+        this.yGrid += yGridIncrement;
         
         calculateCoordinates(fixCoordinates);
     }
@@ -341,6 +356,17 @@ public class Block {
         this.leftFaceVisible = leftFaceVisible;
     }
 
+    public boolean isVisible() {
+        return topFaceVisible || rightFaceVisible || leftFaceVisible;
+    }
+    
+    public void setVisible(boolean b) {
+        topFaceVisible = b;
+        rightFaceVisible = b;
+        leftFaceVisible = b;
+        selectable = b;
+    }
+    
     public Point2D getPt0() {
         return pt0;
     }

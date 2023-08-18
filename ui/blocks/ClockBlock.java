@@ -2,9 +2,11 @@ package ui.blocks;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import ui.UIProperties;
+import ui.enemies.HealthBar;
 
 /**
  *
@@ -25,6 +27,10 @@ public class ClockBlock extends Block {
     private Point2D footLRP;
     private Point2D footLMP;
     private Point2D footLLP;
+    
+    
+    protected boolean healthBarVisible = false;
+    protected HealthBar healthBar = new HealthBar(30);
     
     
     public ClockBlock(double xGrid, double yGrid, double diagonalLength) {
@@ -158,6 +164,7 @@ public class ClockBlock extends Block {
 
         Point2D headLidMP = new Point2D.Double(headMP.getX(), headMP.getY() + clockConstant0);
         Point2D headLidTMP = new Point2D.Double(headMP.getX() + (diagonalHHLength * UIProperties.getUiScale()), headMP.getY() - (diagonalHHLength * UIProperties.getUiScale()) - clockConstant3);
+        Point2D headLidP4 = new Point2D.Double(headLP.getX() + (diagonalHHLength * UIProperties.getUiScale()) - clockConstant0, headLP.getY() - (diagonalHHLength * UIProperties.getUiScale()) - clockConstant3);
 
 
         Path2D rHeadLid = new Path2D.Double();
@@ -173,7 +180,7 @@ public class ClockBlock extends Block {
         headLid.moveTo(headLP.getX() - clockConstant0, headLP.getY() + clockConstant0);
         headLid.lineTo(headLidMP.getX(), headLidMP.getY());
         headLid.lineTo(headLidTMP.getX(), headLidTMP.getY());
-        headLid.lineTo(headLP.getX() + (diagonalHHLength * UIProperties.getUiScale()) - clockConstant0, headLP.getY() - (diagonalHHLength * UIProperties.getUiScale()) - clockConstant3);
+        headLid.lineTo(headLidP4.getX(), headLidP4.getY());
         headLid.closePath();
 
         g2D.setColor(LEFT_BODY_COLOR);
@@ -183,6 +190,9 @@ public class ClockBlock extends Block {
 //        g2D.draw(new Line2D.Double(headLidMP.getX(), headLidMP.getY(), headLidTMP.getX(), headLidTMP.getY()));
         
         paintSelectedIndicator(g2D);
+        
+        if (healthBarVisible)
+            healthBar.paintBar(g2D, headMP.getX(), headLidP4.getY());
     }
     
     @Override
@@ -193,5 +203,17 @@ public class ClockBlock extends Block {
     @Override
     public boolean isPointClose(Point2D p, int radius) {
         return pt1.distance(p) <= radius;
+    }
+
+    public void setHealthBarVisible(boolean healthBarVisible) {
+        this.healthBarVisible = healthBarVisible;
+    }
+    
+    public void setHealth(int value) {
+        healthBar.setValue(value);
+    }
+    
+    public Rectangle getHealthPaintArea() {
+        return healthBar.getPaintArea();
     }
 }

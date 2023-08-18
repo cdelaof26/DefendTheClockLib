@@ -12,17 +12,17 @@ import ui.gameui.EnemyRenderComponent;
  * @author cristopher
  */
 public class GameWindow extends Window {
-    public final BuildPanel buildPanel = new BuildPanel(this);
+    public BuildPanel buildPanel;
     public final ColorButton exit = new ColorButton("Quit");
     
-    private final GameUI gameUI = new GameUI(this);
+    public GameUI gameUI;
     
     public World world;
-    public EnemyRenderComponent enemyRenderComponent = new EnemyRenderComponent(this);
+    public EnemyRenderComponent enemyRenderComponent;
     
     
-    private final GameModes gamemode;
-    private final String user;
+    public final GameModes gamemode;
+    public final String user;
     
     
     private final LoginWindow login;
@@ -56,6 +56,8 @@ public class GameWindow extends Window {
         
         if (gamemode == GameModes.CONSTRUCTION) {
             world.resizeWorld(770, 462);
+            
+            buildPanel = new BuildPanel(this);
             buildPanel.loadWorld(world);
             
             world.setEnemyBlocksVisible(true);
@@ -71,10 +73,16 @@ public class GameWindow extends Window {
         } else {
             world.resizeWorld(1000, 600);
             
+            gameUI = new GameUI(this);
+            enemyRenderComponent = new EnemyRenderComponent(gameUI);
+            
             // Debug
 //            world.verifyWorldPath();
 //            world.setEnemyBlocksVisible(false);
-
+            
+            world.setClockBlockHealthBarVisible(true);
+            world.removeInvisibleBlocks();
+            
             add(gameUI, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, 0);
             add(enemyRenderComponent, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, 0);
             add(world, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, 0);
@@ -87,9 +95,5 @@ public class GameWindow extends Window {
 
         login.refreshWorlds();
         login.showWindow();
-    }
-    
-    public boolean isPaused() {
-        return gameUI.isPaused();
     }
 }

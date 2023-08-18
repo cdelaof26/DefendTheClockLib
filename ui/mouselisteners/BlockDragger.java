@@ -41,8 +41,10 @@ public class BlockDragger extends MouseAdapter {
         if (reinit) {
             b = container.blockSelector.selectedBlock;
             
-            if (b == null)
+            if (b == null) {
                 b = container.selectBlock(p);
+                container.blockSelector.setSelectedBlock(b);
+            }
 
             if (b == null)
                 return;
