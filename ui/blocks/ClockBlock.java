@@ -28,6 +28,8 @@ public class ClockBlock extends Block {
     private Point2D footLMP;
     private Point2D footLLP;
     
+    private Point2D headMP;
+    private Point2D headLidP4;
     
     protected boolean healthBarVisible = false;
     protected HealthBar healthBar = new HealthBar(30);
@@ -134,7 +136,7 @@ public class ClockBlock extends Block {
 
 
         Point2D headLP = new Point2D.Double(bodyLP.getX() - (diagonalHHHLength * UIProperties.getUiScale()) + clockConstant0, bodyLP.getY() - clockConstant2);
-        Point2D headMP = new Point2D.Double(bodyMP.getX(), bodyMP.getY() - clockConstant2);
+        headMP = new Point2D.Double(bodyMP.getX(), bodyMP.getY() - clockConstant2);
         Point2D headRP = new Point2D.Double(bodyRP.getX() + (diagonalHHHLength * UIProperties.getUiScale()) - clockConstant0, bodyRP.getY() - clockConstant2);
 
         Path2D rHead = new Path2D.Double();
@@ -164,7 +166,7 @@ public class ClockBlock extends Block {
 
         Point2D headLidMP = new Point2D.Double(headMP.getX(), headMP.getY() + clockConstant0);
         Point2D headLidTMP = new Point2D.Double(headMP.getX() + (diagonalHHLength * UIProperties.getUiScale()), headMP.getY() - (diagonalHHLength * UIProperties.getUiScale()) - clockConstant3);
-        Point2D headLidP4 = new Point2D.Double(headLP.getX() + (diagonalHHLength * UIProperties.getUiScale()) - clockConstant0, headLP.getY() - (diagonalHHLength * UIProperties.getUiScale()) - clockConstant3);
+        headLidP4 = new Point2D.Double(headLP.getX() + (diagonalHHLength * UIProperties.getUiScale()) - clockConstant0, headLP.getY() - (diagonalHHLength * UIProperties.getUiScale()) - clockConstant3);
 
 
         Path2D rHeadLid = new Path2D.Double();
@@ -190,9 +192,10 @@ public class ClockBlock extends Block {
 //        g2D.draw(new Line2D.Double(headLidMP.getX(), headLidMP.getY(), headLidTMP.getX(), headLidTMP.getY()));
         
         paintSelectedIndicator(g2D);
-        
-        if (healthBarVisible)
-            healthBar.paintBar(g2D, headMP.getX(), headLidP4.getY());
+    }
+    
+    public void paintHealthBar(Graphics2D g2D) {
+        healthBar.paintBar(g2D, headMP.getX(), headLidP4.getY());
     }
     
     @Override

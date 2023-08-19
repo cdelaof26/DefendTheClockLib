@@ -13,7 +13,7 @@ public class BlockSelector extends MouseAdapter {
     private final World container;
     
     protected Block selectedBlock;
-    protected int selectedBlockIndex = -1;
+    protected int selectedBlockIndex = 0;
 
     public BlockSelector(World container) {
         this.container = container;

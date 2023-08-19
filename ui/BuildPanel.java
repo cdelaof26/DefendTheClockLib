@@ -127,6 +127,10 @@ public class BuildPanel extends Panel {
         mainWindow.world.setPaintRoute(paintRoute);
     }
     
+    public boolean renameWorld(String name) {
+        return WorldUtilities.renameWorldFile(mainWindow.world, name);
+    }
+    
     public boolean worldExist() {
         return WorldUtilities.createWorldFile(mainWindow.world).exists();
     }

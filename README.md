@@ -41,6 +41,18 @@ $ java defendtheclocklib/DefendTheClockLib
 
 ### Changelog
 
+### v0.3.1
+- Renaming field in `WorldPropertiesPanel` now renames the file if exist
+- Added a minimum requirement of five path blocks to load a map for a
+  `gamemode != GameModes.CONSTRUCTION`
+- Moved Clock health bar rendering to `EnemyRenderComponent`
+- Added `renderFromImage` property to `World` in an attempt to improve the performance
+- _Fixed performance for Windows_
+- Fixed cube monster concurrence, monsters will appear at the same distance regardless 
+  of the performance or the game state (paused/unpaused)
+- Fixed blocks not appearing when added to an empty world
+- Fixed crash when reading an empty world
+
 ### v0.3.0
 - Added three maps: Meadow Island, Desert Island and Remote Island
 - Added option to display the route that monsters will follow in `WorldPropertiesPanel`

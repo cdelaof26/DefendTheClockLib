@@ -4,13 +4,16 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import ui.blocks.ClockBlock;
 import ui.enemies.CubeMonster;
 import ui.enemies.EyeMonster;
 import ui.enemies.FaceMonster;
+import utils.LibUtilities;
 
 /**
  *
@@ -19,11 +22,20 @@ import ui.enemies.FaceMonster;
 public class EnemyRenderComponent extends JComponent {
     private Timer renderRefresh;
     
+    private final int wthreads = 6;
+    private final Thread [] winThreads = new Thread[wthreads];
+    private int activeID = -1;
+    
+    
     private int steps = 0;
     
     private boolean creatingEnemies = false;
     
+    private ClockBlock clockBlock;
+    
     private final ArrayList<CubeMonster> cubeMonsters = new ArrayList<>();
+    private CubeMonster lastMonster;
+    
     private final int cubeMonsterWidth;
     private boolean allEnemiesDead = true;
     
@@ -41,27 +53,76 @@ public class EnemyRenderComponent extends JComponent {
 
     private void initEnemyRenderComponent() {
         updateNumberOfSteps(0);
-        renderRefresh.start();
         setPreferredSize(new Dimension(1000, 600));
-    }
-    
-    public void updateNumberOfSteps(int stepsGain) {
-        gameUI.stats.updateNumberOfSteps(stepsGain);
-        
-        renderRefresh = new Timer(gameUI.stats.getNumberOfSteps() / 100, (Action) -> {
-            if (gameUI.isPaused())
-                return;
-
-            moveEnemies();
-        });
     }
     
     @Override
     protected void paintComponent(Graphics g) {
 //        for (int i = cubeMonsters.size() - 1; i >= 0; i--)
 //            cubeMonsters.get(i).paintBlock((Graphics2D) g);
+
+        Graphics2D g2D = (Graphics2D) g;
+
+        clockBlock.paintHealthBar(g2D);
+        
         for (CubeMonster cm : cubeMonsters)
-            cm.paintBlock((Graphics2D) g);
+            cm.paintBlock(g2D);
+    }
+    
+    public void updateNumberOfSteps(int stepsGain) {
+        gameUI.stats.updateNumberOfSteps(stepsGain);
+        
+        int wait = gameUI.stats.getNumberOfSteps() / 100;
+        
+        // idk why is windows always giving me weird bugs,
+        // opening six threads will fix (kinda) the performance speed
+        if (!LibUtilities.IS_UNIX_LIKE) {
+            activeID++;
+//            System.out.println("threads started");
+            int id = activeID;
+            for (int i = 0; i < wthreads; i++) {
+//                int j = i;
+                winThreads[i] = new Thread(() -> {
+                    try { Thread.sleep(1000); } catch (InterruptedException ex) { }
+                    while (id == activeID)
+                        try { Thread.sleep(wait); } catch (InterruptedException ex) { }
+                    
+//                    System.out.println("thread" + j + " ended");
+                });
+                winThreads[i].start();
+            }
+            
+//            System.out.println("settled activeID=" + activeID);
+        }
+        
+        if (renderRefresh != null)
+            renderRefresh.stop();
+        
+        renderRefresh = new Timer(wait, (Action) -> {
+            if (gameUI.isPaused())
+                return;
+            
+            moveEnemies();
+        });
+        
+        renderRefresh.start();
+    }
+    
+    public boolean areAllEnemiesDead() {
+        return allEnemiesDead;
+    }
+
+    public void setClockBlock(ClockBlock clockBlock) {
+        this.clockBlock = clockBlock;
+    }
+    
+    public void setClockBlockHealthBarVisible(boolean b) {
+        clockBlock.setHealthBarVisible(b);
+    }
+    
+    public void setClockHealth(int value) {
+        clockBlock.setHealth(value);
+        repaint(clockBlock.getHealthPaintArea());
     }
     
     public void generateMonsterHorde(int monsterAmount, int health, Point2D spawnCoordinates) {
@@ -69,33 +130,38 @@ public class EnemyRenderComponent extends JComponent {
         allEnemiesDead = false;
         
         new Thread(() -> {
-            for (int i = 0; i < monsterAmount; i++) {
-                if (gameUI.isPaused()) {
-                    i--;
-                    try { Thread.sleep(1500); } catch (InterruptedException ex) { }
+            int i = 0;
+            while (i < monsterAmount) {
+                if (gameUI.isPaused())
+                    try { Thread.sleep(100); } catch (InterruptedException ex) { }
+                
+                if (lastMonster != null)
+                    while (lastMonster.getLastCoordinate() < 4)
+                        try { Thread.sleep(100); } catch (InterruptedException ex) { }
+                
+                try {
+                    SwingUtilities.invokeAndWait(() -> {
+                        createNewCubeMonster(health, spawnCoordinates);
+                    });
+                } catch (InterruptedException | InvocationTargetException ex) {
+                    ex.printStackTrace();
                 }
                 
-                SwingUtilities.invokeLater(() -> {
-                    createNewCubeMonster(health, spawnCoordinates);
-                });
-                
-                try { Thread.sleep(1500); } catch (InterruptedException ex) { }
+                i++;
             }
         }).start();
     }
     
     public void createNewCubeMonster(int health, Point2D spawnCoordinates) {
-        CubeMonster cm;
-        
         if ((int) (Math.random() * 10) % 2 == 0)
-            cm = new EyeMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), cubeMonsterWidth, health);
+            lastMonster = new EyeMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), cubeMonsterWidth, health);
         else
-            cm = new FaceMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), cubeMonsterWidth, health);
+            lastMonster = new FaceMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), cubeMonsterWidth, health);
         
-        cm.setNumberOfSteps(gameUI.stats.getNumberOfSteps());
-        cm.setNextTilePosition(gameUI.mainWindow.world.getEnemyPathCoordinate(cm.getLastCoordinate()));
-        cm.defineFacingDirection();
-        cubeMonsters.add(cm);
+        lastMonster.setNumberOfSteps(gameUI.stats.getNumberOfSteps());
+        lastMonster.setNextTilePosition(gameUI.mainWindow.world.getEnemyPathCoordinate(0));
+        lastMonster.defineFacingDirection();
+        cubeMonsters.add(lastMonster);
         
         creatingEnemies = false;
     }
@@ -107,10 +173,6 @@ public class EnemyRenderComponent extends JComponent {
         }
     }
 
-    public boolean areAllEnemiesDead() {
-        return allEnemiesDead;
-    }
-    
     private void moveEnemies() {
         if (creatingEnemies)
             return;

@@ -80,7 +80,9 @@ public class GameWindow extends Window {
 //            world.verifyWorldPath();
 //            world.setEnemyBlocksVisible(false);
             
-            world.setClockBlockHealthBarVisible(true);
+            world.enableRenderFromImage();
+            enemyRenderComponent.setClockBlock(world.getClockBlock());
+            enemyRenderComponent.setClockBlockHealthBarVisible(true);
             world.removeInvisibleBlocks();
             
             add(gameUI, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, 0);

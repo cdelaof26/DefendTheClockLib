@@ -156,7 +156,7 @@ public class GameUI extends Panel {
     }
     
     public void decreaseClockHealth() {
-        mainWindow.world.setClockHealth(stats.decreaseClockHealth());
+        mainWindow.enemyRenderComponent.setClockHealth(stats.decreaseClockHealth());
         
         if (stats.getClockHealth() == 0) {
             paused = true;

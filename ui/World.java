@@ -9,6 +9,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.VolatileImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -19,6 +20,7 @@ import ui.blocks.EnemyPathBlock;
 import ui.blocks.EnemySpawnBlock;
 import ui.mouselisteners.BlockDragger;
 import ui.mouselisteners.BlockSelector;
+import utils.AppUtilities;
 import utils.LibUtilities;
 
 /**
@@ -54,6 +56,7 @@ public class World extends JComponent implements ComponentSetup {
     private ClockBlock clockBlock;
     
     protected boolean allPathBlockTogether = false;
+    protected boolean fivePathBlocks = false;
     protected boolean oneSpawnPathBlockFound = false;
     protected boolean oneClockBlockFound = false;
     
@@ -61,6 +64,11 @@ public class World extends JComponent implements ComponentSetup {
     
     private LinkedList<Point2D> enemyPathCoordinates = new LinkedList<>();
     protected boolean paintRoute = false;
+    
+    
+    protected boolean renderFromImage = false;
+    protected boolean renderToImageFT = true;
+    protected VolatileImage image = null;
     
     
     public GameWindow mainWindow = null;
@@ -144,7 +152,20 @@ public class World extends JComponent implements ComponentSetup {
     
     @Override
     protected void paintComponent(Graphics g) {
-        Graphics2D g2D = (Graphics2D) g;
+        Graphics2D g2D;
+        
+        if (image == null && renderFromImage && renderToImageFT) {
+            image = AppUtilities.gc.createCompatibleVolatileImage(width, height);
+            g2D = image.createGraphics();
+        } else
+            g2D = (Graphics2D) g;
+        
+        
+        if (renderFromImage && !renderToImageFT) {
+            g2D.drawImage(image, 0, 0, null);
+            return;
+        }
+        
         
         g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2D.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
@@ -172,10 +193,23 @@ public class World extends JComponent implements ComponentSetup {
         for (Block b : blocks)
             b.paintBlock(g2D);
         
+        
+        if (renderFromImage && renderToImageFT) {
+            renderToImageFT = false;
+            g.drawImage(image, 0, 0, null);
+            return;
+        }
+        
+        
         if (paintRoute) {
             verifyWorldPath();
             paintRoute(g2D);
         }
+    }
+    
+    public void enableRenderFromImage() {
+        this.renderFromImage = true;
+        repaint();
     }
     
     public void paintRoute(Graphics2D g2D) {
@@ -298,6 +332,10 @@ public class World extends JComponent implements ComponentSetup {
     public ArrayList<Block> getBlocks() {
         return blocks;
     }
+
+    public ClockBlock getClockBlock() {
+        return clockBlock;
+    }
     
     public int getBlocksAmount() {
         return blocks.size();
@@ -410,15 +448,6 @@ public class World extends JComponent implements ComponentSetup {
         }
     }
     
-    public void setClockBlockHealthBarVisible(boolean b) {
-        clockBlock.setHealthBarVisible(b);
-    }
-    
-    public void setClockHealth(int value) {
-        clockBlock.setHealth(value);
-        repaint(clockBlock.getHealthPaintArea());
-    }
-    
     public void removeInvisibleBlocks() {
         int i = 0;
         while (i < blocks.size()) {
@@ -437,6 +466,7 @@ public class World extends JComponent implements ComponentSetup {
         
         int spawnBlocks = 0;
         int clockBlocks = 0;
+        int amountOfPathBlocks = 0;
         
         Block spawnBlock = null;
         clockBlock = null;
@@ -444,17 +474,19 @@ public class World extends JComponent implements ComponentSetup {
         for (int i = 0; i < blocks.size(); i++) {
             Block b = blocks.get(i);
             
-            if (b instanceof EnemyPathBlock)
+            if (b instanceof EnemyPathBlock) {
                 pathBlocks.add(b);
-            if (b instanceof EnemySpawnBlock) {
+                amountOfPathBlocks++;
+            } else if (b instanceof EnemySpawnBlock) {
                 spawnBlock = b;
                 spawnBlocks++;
-            }
-            if (b instanceof ClockBlock) {
+            } else if (b instanceof ClockBlock) {
                 clockBlock = (ClockBlock) b;
                 clockBlocks++;
             }
         }
+        
+        fivePathBlocks = amountOfPathBlocks >= 5;
         
         oneClockBlockFound = clockBlocks == 1;
         if (!oneClockBlockFound)

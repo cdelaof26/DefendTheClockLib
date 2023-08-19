@@ -43,6 +43,10 @@ public class WorldUtilities {
         File desertIslandFile = FileUtilities.joinPath(WORLDS_DIRECTORY, desertIsland);
         File remoteIslandFile = FileUtilities.joinPath(WORLDS_DIRECTORY, remoteIsland);
         
+        if (!WORLDS_DIRECTORY.exists())
+            if (!WORLDS_DIRECTORY.mkdir())
+                System.exit(1);
+        
         if (!meadowIslandFile.exists())
             FileUtilities.writeFile(meadowIslandIS, meadowIslandFile, true);
         
@@ -56,6 +60,12 @@ public class WorldUtilities {
     
     public static File createWorldFile(World w) {
         return FileUtilities.joinPath(WORLDS_DIRECTORY, w.getName(true) + ".dtcl");
+    }
+    
+    public static boolean renameWorldFile(World w, String newName) {
+        File oldFile = createWorldFile(w);
+        File newFile = FileUtilities.joinPath(WORLDS_DIRECTORY, newName.replace(" ", "_") + ".dtcl");
+        return oldFile.renameTo(newFile);
     }
     
     public static boolean saveWorld(World w) {
@@ -130,6 +140,9 @@ public class WorldUtilities {
             return;
         
         String [] splitedData = LibUtilities.splitData(worldBlocksID, replacedStringIDs, replacedStrings);
+        
+        if (splitedData.length == 0)
+            return;
         
         ArrayList<Block> blocks = new ArrayList<>();
         for (int i = 0; i < splitedData.length; i++)

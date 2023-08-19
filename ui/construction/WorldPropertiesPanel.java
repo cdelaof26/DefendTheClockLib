@@ -70,7 +70,11 @@ public class WorldPropertiesPanel extends Panel {
         title.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                container.setWorldName(title.getText());
+                if (container.worldExist()) {
+                    if (container.renameWorld(title.getText()))
+                        container.setWorldName(title.getText());
+                } else
+                    container.setWorldName(title.getText());    
             }
         });
         

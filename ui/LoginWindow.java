@@ -136,6 +136,13 @@ public class LoginWindow extends Window {
                 return;
             }
             
+            if (mode != GameModes.CONSTRUCTION && !selectedWorld.fivePathBlocks) {
+                messagePane.showMessage("Invalid world", 
+                        "The selected world is unplayable as there's less than 5 path blocks,\n"
+                        + "please use CONSTRUCTION mode to fix the problem\n\n", false);
+                return;
+            }
+            
             hideWindow();
             new GameWindow(this, selectedWorld, mode, user).showWindow();
         });
@@ -171,10 +178,8 @@ public class LoginWindow extends Window {
             previews[loaded].setPreview(w);
         }
         
-        if (loaded != 2) {
-            for (; loaded < 3; loaded++)
-                previews[loaded].removePreview();
-        }
+        for (; loaded < 3; loaded++)
+            previews[loaded].removePreview();
     }
     
     public final void refreshWorlds() {
@@ -237,6 +242,7 @@ public class LoginWindow extends Window {
             if (this.preview != null)
                 this.remove(this.preview);
             
+            this.preview = null;
             this.worldName.setText("");
             repaint();
         }
