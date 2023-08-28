@@ -69,14 +69,14 @@ public class Block {
     }
     
     public void createFaces() {
-        pt0 = new Point2D.Double((x + diagonalLength) * UIProperties.getUiScale(), (y + diagonalHHLength) * UIProperties.getUiScale());
-        pt1 = new Point2D.Double((x + diagonalHalfLength) * UIProperties.getUiScale(), (y + diagonalHalfLength) * UIProperties.getUiScale());
-        pt2 = new Point2D.Double(x * UIProperties.getUiScale(), (y + diagonalHHLength) * UIProperties.getUiScale());
+        pt0 = new Point2D.Double(x + diagonalLength, y + diagonalHHLength);
+        pt1 = new Point2D.Double(x + diagonalHalfLength, y + diagonalHalfLength);
+        pt2 = new Point2D.Double(x, y + diagonalHHLength);
         
         
         topFace = new Path2D.Double();
 
-        topFace.moveTo((x + diagonalHalfLength) * UIProperties.getUiScale(), y * UIProperties.getUiScale());
+        topFace.moveTo((x + diagonalHalfLength), y);
         topFace.lineTo(pt0.getX(), pt0.getY());
         topFace.lineTo(pt1.getX(), pt1.getY());
         topFace.lineTo(pt2.getX(), pt2.getY());
@@ -87,16 +87,16 @@ public class Block {
 
         rightFace.moveTo(pt1.getX(), pt1.getY());
         rightFace.lineTo(pt0.getX(), pt0.getY());
-        rightFace.lineTo(pt0.getX(), pt0.getY() + diagonalHalfLength * UIProperties.getUiScale());
-        rightFace.lineTo(pt1.getX(), pt1.getY() + diagonalHalfLength * UIProperties.getUiScale());
+        rightFace.lineTo(pt0.getX(), pt0.getY() + diagonalHalfLength);
+        rightFace.lineTo(pt1.getX(), pt1.getY() + diagonalHalfLength);
         rightFace.closePath();
         
         
         leftFace = new Path2D.Double();
 
         leftFace.moveTo(pt1.getX(), pt1.getY());
-        leftFace.lineTo(pt1.getX(), pt1.getY() + diagonalHalfLength * UIProperties.getUiScale());
-        leftFace.lineTo(pt2.getX(), pt2.getY() + diagonalHalfLength * UIProperties.getUiScale());
+        leftFace.lineTo(pt1.getX(), pt1.getY() + diagonalHalfLength);
+        leftFace.lineTo(pt2.getX(), pt2.getY() + diagonalHalfLength);
         leftFace.lineTo(pt2.getX(), pt2.getY());
         leftFace.closePath();
     }
@@ -107,13 +107,13 @@ public class Block {
         
         Path2D selectorIndicator = new Path2D.Double();
         
-        selectorIndicator.moveTo(pt2.getX(), pt2.getY() + diagonalHalfLength * UIProperties.getUiScale());
-        selectorIndicator.lineTo(pt1.getX(), pt1.getY() + diagonalHalfLength * UIProperties.getUiScale());
-        selectorIndicator.lineTo(pt0.getX(), pt0.getY() + diagonalHalfLength * UIProperties.getUiScale());
+        selectorIndicator.moveTo(pt2.getX(), pt2.getY() + diagonalHalfLength);
+        selectorIndicator.lineTo(pt1.getX(), pt1.getY() + diagonalHalfLength);
+        selectorIndicator.lineTo(pt0.getX(), pt0.getY() + diagonalHalfLength);
         
-        selectorIndicator.lineTo(pt0.getX() + diagonalHHLength * UIProperties.getUiScale(), pt0.getY() + (diagonalHalfLength + diagonalHHHLength) * UIProperties.getUiScale());
-        selectorIndicator.lineTo(pt1.getX(), pt1.getY() + (diagonalHalfLength + diagonalHHLength) * UIProperties.getUiScale());
-        selectorIndicator.lineTo(pt2.getX() - diagonalHHLength * UIProperties.getUiScale(), pt2.getY() + (diagonalHalfLength + diagonalHHHLength) * UIProperties.getUiScale());
+        selectorIndicator.lineTo(pt0.getX() + diagonalHHLength, pt0.getY() + diagonalHalfLength + diagonalHHHLength);
+        selectorIndicator.lineTo(pt1.getX(), pt1.getY() + diagonalHalfLength + diagonalHHLength);
+        selectorIndicator.lineTo(pt2.getX() - diagonalHHLength, pt2.getY() + diagonalHalfLength + diagonalHHHLength);
         
         selectorIndicator.closePath();
         
@@ -277,6 +277,9 @@ public class Block {
     }
     
     public boolean isPointInside(Point2D p) {
+        if (!isVisible())
+            createFaces();
+        
         boolean onTopFace = topFace.contains(p);
         boolean onRightFace = rightFace.contains(p);
         boolean onLeftFace = leftFace.contains(p);
@@ -302,6 +305,14 @@ public class Block {
     
     public boolean doCoordinatesEqual(Point2D p) {
         return this.xGrid == p.getX() && this.yGrid == p.getY();
+    }
+    
+    public boolean doCoordinatesEqual(Point2D [] points) {
+        for (Point2D p : points)
+            if (doCoordinatesEqual(p))
+                return true;
+        
+        return false;
     }
     
     public Point2D [] getAdjacentPoints() {

@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import ui.UIProperties;
 
 /**
  *
@@ -16,13 +17,15 @@ public class HealthBar {
     protected int value;
 
     protected int width = 60, height = 8;
-    protected int halfWidth = 30, halfHeight = 4;
+    protected int halfWidth, halfHeight;
     
     protected Rectangle paintArea;
     
     public HealthBar(int maximumValue) {
         this.maximumValue = maximumValue;
         this.value = this.maximumValue;
+        
+        scale();
     }
     
     public void paintBar(Graphics2D g2D, double x, double y) {
@@ -74,13 +77,33 @@ public class HealthBar {
         
         value--;
     }
+    
+    public void decreaseValue(int decrease) {
+        if (value - decrease < 1) {
+            value = 0;
+            return;
+        }
+        
+        value -= decrease;
+    }
+    
+    public boolean isAlive() {
+        return value > 0;
+    }
 
     public Rectangle getPaintArea() {
         return paintArea;
     }
+    
+    private void scale() {
+        width *= UIProperties.getUiScale();
+        height *= UIProperties.getUiScale();
+        halfWidth = width / 2;
+        halfHeight = height / 2;
+    }
 
     public void makeSmall() {
         width = 50; height = 8;
-        halfWidth = 25; halfHeight = 4;
+        scale();
     }
 }

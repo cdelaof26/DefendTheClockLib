@@ -16,14 +16,14 @@ public class LiquidBlock extends Block {
     
     @Override
     public void createFaces() {
-        pt0 = new Point2D.Double((x + diagonalLength) * UIProperties.getUiScale(), (y + diagonalHHLength + diagonalHHHLength) * UIProperties.getUiScale());
-        pt1 = new Point2D.Double((x + diagonalHalfLength) * UIProperties.getUiScale(), (y + diagonalHalfLength + diagonalHHHLength) * UIProperties.getUiScale());
-        pt2 = new Point2D.Double(x * UIProperties.getUiScale(), (y + diagonalHHLength + diagonalHHHLength) * UIProperties.getUiScale());
+        pt0 = new Point2D.Double((x + diagonalLength), y + diagonalHHLength + diagonalHHHLength);
+        pt1 = new Point2D.Double((x + diagonalHalfLength), y + diagonalHalfLength + diagonalHHHLength);
+        pt2 = new Point2D.Double(x, y + diagonalHHLength + diagonalHHHLength);
         
         
         topFace = new Path2D.Double();
 
-        topFace.moveTo((x + diagonalHalfLength) * UIProperties.getUiScale(), (y + diagonalHHHLength) * UIProperties.getUiScale());
+        topFace.moveTo(x + diagonalHalfLength, y + diagonalHHHLength);
         topFace.lineTo(pt0.getX(), pt0.getY());
         topFace.lineTo(pt1.getX(), pt1.getY());
         topFace.lineTo(pt2.getX(), pt2.getY());
@@ -34,16 +34,16 @@ public class LiquidBlock extends Block {
 
         rightFace.moveTo(pt1.getX(), pt1.getY());
         rightFace.lineTo(pt0.getX(), pt0.getY());
-        rightFace.lineTo(pt0.getX(), pt0.getY() + (diagonalHalfLength - diagonalHHHLength) * UIProperties.getUiScale());
-        rightFace.lineTo(pt1.getX(), pt1.getY() + (diagonalHalfLength - diagonalHHHLength) * UIProperties.getUiScale());
+        rightFace.lineTo(pt0.getX(), pt0.getY() + diagonalHalfLength - diagonalHHHLength);
+        rightFace.lineTo(pt1.getX(), pt1.getY() + diagonalHalfLength - diagonalHHHLength);
         rightFace.closePath();
         
         
         leftFace = new Path2D.Double();
 
         leftFace.moveTo(pt1.getX(), pt1.getY());
-        leftFace.lineTo(pt1.getX(), pt1.getY() + (diagonalHalfLength - diagonalHHHLength) * UIProperties.getUiScale());
-        leftFace.lineTo(pt2.getX(), pt2.getY() + (diagonalHalfLength - diagonalHHHLength) * UIProperties.getUiScale());
+        leftFace.lineTo(pt1.getX(), pt1.getY() + diagonalHalfLength - diagonalHHHLength);
+        leftFace.lineTo(pt2.getX(), pt2.getY() + diagonalHalfLength - diagonalHHHLength);
         leftFace.lineTo(pt2.getX(), pt2.getY());
         leftFace.closePath();
     }
@@ -55,13 +55,13 @@ public class LiquidBlock extends Block {
         
         Path2D selectorIndicator = new Path2D.Double();
         
-        selectorIndicator.moveTo(pt2.getX(), pt2.getY() + (diagonalHalfLength - diagonalHHHLength) * UIProperties.getUiScale());
-        selectorIndicator.lineTo(pt1.getX(), pt1.getY() + (diagonalHalfLength - diagonalHHHLength) * UIProperties.getUiScale());
-        selectorIndicator.lineTo(pt0.getX(), pt0.getY() + (diagonalHalfLength - diagonalHHHLength) * UIProperties.getUiScale());
+        selectorIndicator.moveTo(pt2.getX(), pt2.getY() + diagonalHalfLength - diagonalHHHLength);
+        selectorIndicator.lineTo(pt1.getX(), pt1.getY() + diagonalHalfLength - diagonalHHHLength);
+        selectorIndicator.lineTo(pt0.getX(), pt0.getY() + diagonalHalfLength - diagonalHHHLength);
         
-        selectorIndicator.lineTo(pt0.getX() + diagonalHHLength * UIProperties.getUiScale(), pt0.getY() + diagonalHalfLength * UIProperties.getUiScale());
-        selectorIndicator.lineTo(pt1.getX(), pt1.getY() + (diagonalHalfLength + diagonalHHHLength) * UIProperties.getUiScale());
-        selectorIndicator.lineTo(pt2.getX() - diagonalHHLength * UIProperties.getUiScale(), pt2.getY() + diagonalHalfLength * UIProperties.getUiScale());
+        selectorIndicator.lineTo(pt0.getX() + diagonalHHLength, pt0.getY() + diagonalHalfLength);
+        selectorIndicator.lineTo(pt1.getX(), pt1.getY() + diagonalHalfLength + diagonalHHHLength);
+        selectorIndicator.lineTo(pt2.getX() - diagonalHHLength, pt2.getY() + diagonalHalfLength);
         
         selectorIndicator.closePath();
         

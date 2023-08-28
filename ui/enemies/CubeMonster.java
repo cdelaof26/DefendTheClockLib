@@ -3,8 +3,11 @@ package ui.enemies;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+import ui.UIProperties;
 import ui.blocks.Block;
 import ui.enums.CubeMonsterFacing;
 
@@ -16,11 +19,11 @@ public class CubeMonster extends Block {
     private final Color SHADOW_COLOR = new Color(0, 0, 0, 100);
     protected Path2D monsterShadow;
     
-    private Point2D topFaceTop;
+    public static Point2D topFaceTop;
     private double height;
     
-    private double cubeMonsterConstant0;
-    private double cubeMonsterConstant1;
+    public static double cubeMonsterConstant0;
+    public static double cubeMonsterConstant1;
     
     protected Point2D nextTilePosition;
     protected double xDifference;
@@ -32,11 +35,14 @@ public class CubeMonster extends Block {
     
     protected int steps = 0;
     protected int numberOfSteps;
+    boolean movementEnded;
+    
     protected HealthBar healthBar = new HealthBar(1);
     
     protected CubeMonsterFacing facingDirection = CubeMonsterFacing.NONE;
-
-    public CubeMonster(double xGrid, double yGrid, double diagonalLength) {
+    
+    
+    public CubeMonster(double xGrid, double yGrid, double diagonalLength, int health) {
         super(xGrid, yGrid, diagonalLength);
         
         int colorModifier0 = 100 + (int) (Math.random() * 155);
@@ -49,6 +55,7 @@ public class CubeMonster extends Block {
         leftFaceColor = topFaceColor.darker();
         
         healthBar.makeSmall();
+        setMaximumHealth(health);
     }
 
     @Override
@@ -57,10 +64,10 @@ public class CubeMonster extends Block {
         cubeMonsterConstant0 = 0.075 * diagonalLength;        // 9
         cubeMonsterConstant1 = 0.0666666667 * diagonalLength; // 8
         
-        topFaceTop = new Point2D.Double(x + diagonalHalfLength, y + cubeMonsterConstant1 + cubeMonsterConstant0);
-        pt0 = new Point2D.Double(x + diagonalLength - diagonalHHHLength, y + diagonalHHLength + cubeMonsterConstant0);
-        pt1 = new Point2D.Double(x + diagonalHalfLength, y + diagonalHalfLength - cubeMonsterConstant1 + cubeMonsterConstant0);
-        pt2 = new Point2D.Double(x + diagonalHHHLength, y + diagonalHHLength + cubeMonsterConstant0);
+        topFaceTop = new Point2D.Double(diagonalHalfLength, cubeMonsterConstant1 + cubeMonsterConstant0);
+        pt0 = new Point2D.Double(diagonalLength - diagonalHHHLength, diagonalHHLength + cubeMonsterConstant0);
+        pt1 = new Point2D.Double(diagonalHalfLength, diagonalHalfLength - cubeMonsterConstant1 + cubeMonsterConstant0);
+        pt2 = new Point2D.Double(diagonalHHHLength, diagonalHHLength + cubeMonsterConstant0);
         
         height = diagonalHalfLength - diagonalHHHLength;
         
@@ -90,14 +97,14 @@ public class CubeMonster extends Block {
         
         
         // Bigger shadow
-//        Point2D spt0 = new Point2D.Double((x + diagonalLength) * UIProperties.getUiScale(), (y + diagonalHHLength) * UIProperties.getUiScale());
-//        Point2D spt1 = new Point2D.Double((x + diagonalHalfLength) * UIProperties.getUiScale(), (y + diagonalHalfLength) * UIProperties.getUiScale());
-//        Point2D spt2 = new Point2D.Double(x * UIProperties.getUiScale(), (y + diagonalHHLength) * UIProperties.getUiScale());
+//        Point2D spt0 = new Point2D.Double((diagonalLength) * UIProperties.getUiScale(), (diagonalHHLength) * UIProperties.getUiScale());
+//        Point2D spt1 = new Point2D.Double((diagonalHalfLength) * UIProperties.getUiScale(), (diagonalHalfLength) * UIProperties.getUiScale());
+//        Point2D spt2 = new Point2D.Double(x * UIProperties.getUiScale(), (diagonalHHLength) * UIProperties.getUiScale());
 //        
 //        
 //        monsterShadow = new Path2D.Double();
 //
-//        monsterShadow.moveTo(x + diagonalHalfLength, y + height + cubeMonsterConstant1);
+//        monsterShadow.moveTo(diagonalHalfLength, height + cubeMonsterConstant1);
 //        monsterShadow.lineTo(spt0.getX(), spt0.getY() + height + cubeMonsterConstant1);
 //        monsterShadow.lineTo(spt1.getX(), spt1.getY() + height + cubeMonsterConstant1);
 //        monsterShadow.lineTo(spt2.getX(), spt2.getY() + height + cubeMonsterConstant1);
@@ -112,24 +119,43 @@ public class CubeMonster extends Block {
         monsterShadow.lineTo(pt2.getX(), pt2.getY() + height + cubeMonsterConstant1);
         monsterShadow.closePath();
     }
+    
+    protected BufferedImage block = null;
 
     @Override
     public void paintBlock(Graphics2D g2D) {
-        createFaces();
+        if (block == null) {
+            block = new BufferedImage((int) diagonalLength, (int) diagonalLength, BufferedImage.TYPE_INT_ARGB);
+            
+            Graphics2D bg2D = block.createGraphics();
+//            bg2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            bg2D.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+            bg2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            
+            createFaces();
+            
+            bg2D.setColor(SHADOW_COLOR);
+            bg2D.fill(monsterShadow);
+
+            bg2D.setColor(topFaceColor);
+            bg2D.fill(topFace);
+
+            bg2D.setColor(rightFaceColor);
+            bg2D.fill(rightFace);
+
+            bg2D.setColor(leftFaceColor);
+            bg2D.fill(leftFace);
+        }
         
-        g2D.setColor(SHADOW_COLOR);
-        g2D.fill(monsterShadow);
-        
-        g2D.setColor(topFaceColor);
-        g2D.fill(topFace);
-        
-        g2D.setColor(rightFaceColor);
-        g2D.fill(rightFace);
-        
-        g2D.setColor(leftFaceColor);
-        g2D.fill(leftFace);
-        
-        healthBar.paintBar(g2D, topFaceTop.getX(), topFaceTop.getY());
+        g2D.drawImage(block, (int) x, (int) y, null);
+    }
+    
+    public void paintHealthBar(Graphics2D g2D) {
+        healthBar.paintBar(g2D, x + diagonalHalfLength, y + cubeMonsterConstant1 + cubeMonsterConstant0);
+    }
+    
+    public void dispose() {
+        block.getGraphics().dispose();
     }
     
     public void setNumberOfSteps(int numberOfSteps) {
@@ -171,8 +197,8 @@ public class CubeMonster extends Block {
         facingDirection = CubeMonsterFacing.NONE;
     }
 
-    public boolean movementEnded() {
-        return steps >= numberOfSteps;
+    public boolean didMovementEnd() {
+        return movementEnded;
     }
     
     public void increaseLastCoordinate() {
@@ -183,17 +209,34 @@ public class CubeMonster extends Block {
         if (steps >= numberOfSteps)
             return;
         
+        if (isDead()) {
+            movementEnded = true;
+            return;
+        }
+        
         moveBlockCoordinates(xStep, yStep, false);
         steps++;
+        movementEnded = steps >= numberOfSteps;
     }
     
-    public void setMaximumHealth(int value) {
+    public final void setMaximumHealth(int value) {
         healthBar.setMaximumValue(value);
         healthBar.setValue(value);
     }
+    
+    public void reduceHealth(int damage) {
+        if (damage < 0)
+            damage = -damage;
+        
+        healthBar.decreaseValue(damage);
+    }
+    
+    public boolean isDead() {
+        return !healthBar.isAlive();
+    }
 
     public Rectangle getPaintArea() {
-        double totalHeight = 3 + healthBar.getHeight() + diagonalLength;
-        return new Rectangle((int) healthBar.getX(), (int) healthBar.getY(), healthBar.getWidth() + 1, (int) totalHeight);
+        double totalHeight = 3 * UIProperties.getUiScale() + healthBar.getHeight() + diagonalLength;
+        return new Rectangle((int) healthBar.getX(), (int) healthBar.getY(), (int) (healthBar.getWidth() + UIProperties.getUiScale()), (int) totalHeight);
     }
 }

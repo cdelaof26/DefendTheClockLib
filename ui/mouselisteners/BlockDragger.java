@@ -3,7 +3,6 @@ package ui.mouselisteners;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import ui.UIProperties;
 import ui.World;
 import ui.blocks.Block;
 
@@ -49,8 +48,8 @@ public class BlockDragger extends MouseAdapter {
             if (b == null)
                 return;
 
-            gridLength = container.getGridLength() * UIProperties.getUiScale();
-            gridHalfLength = container.getGridHalfLength() * UIProperties.getUiScale();
+            gridLength = container.getGridLength();
+            gridHalfLength = container.getGridHalfLength();
             
             widthInSquares = container.getWidthInSquares();
             heightInSquares = container.getHeightInSquares();

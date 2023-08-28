@@ -77,13 +77,13 @@ public class GameWindow extends Window {
             enemyRenderComponent = new EnemyRenderComponent(gameUI);
             
             // Debug
-//            world.verifyWorldPath();
-//            world.setEnemyBlocksVisible(false);
+            world.verifyWorldPath();
+            world.setEnemyBlocksVisible(false);
             
-            world.enableRenderFromImage();
+            world.removeInvisibleBlocks();
             enemyRenderComponent.setClockBlock(world.getClockBlock());
             enemyRenderComponent.setClockBlockHealthBarVisible(true);
-            world.removeInvisibleBlocks();
+            world.enableRenderFromImage();
             
             add(gameUI, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, 0);
             add(enemyRenderComponent, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, 0);
@@ -94,6 +94,16 @@ public class GameWindow extends Window {
     public void showLoginWindow() {
         hideWindow();
         dispose();
+        
+        if (enemyRenderComponent != null) {
+            enemyRenderComponent.despawnCubeMonsters();
+            enemyRenderComponent.disassembleAllTurrets();
+        }
+        
+        world.dispose();
+        
+        System.gc();
+        Runtime.getRuntime().freeMemory();
 
         login.refreshWorlds();
         login.showWindow();

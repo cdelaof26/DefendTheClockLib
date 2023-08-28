@@ -196,14 +196,18 @@ public class BuildPanel extends Panel {
         mainWindow.world.deleteSelectedBlock();
     }
     
-    public void moveSelectedBlockALayer(boolean forward) {
+    public int moveSelectedBlockALayer(boolean forward) {
         mainWindow.world.moveSelectedBlockALayer(forward);
         mainWindow.world.repaint();
+        
+        return mainWindow.world.blockSelector.getSelectedBlockIndex();
     }
     
-    public void moveSelectedBlockTo(boolean front) {
+    public int moveSelectedBlockTo(boolean front) {
         mainWindow.world.moveSelectedBlockTo(front);
         mainWindow.world.repaint();
+        
+        return mainWindow.world.blockSelector.getSelectedBlockIndex();
     }
     
     public int getSelectedBlockIndex() {

@@ -43,12 +43,12 @@ public class ClockBlock extends Block {
 
     @Override
     public void createFaces() {
-        clockConstant0 = 0.0416666667 * diagonalLength * UIProperties.getUiScale();
-        clockConstant1 = 0.025 * diagonalLength * 2 * UIProperties.getUiScale();
-        clockConstant3 = 0.025 * diagonalLength * 3 * UIProperties.getUiScale();
-        clockConstant2 = diagonalHHHLength * 3.2 * UIProperties.getUiScale();
+        clockConstant0 = 0.0416666667 * diagonalLength;
+        clockConstant1 = 0.025 * diagonalLength * 2;
+        clockConstant3 = 0.025 * diagonalLength * 3;
+        clockConstant2 = diagonalHHHLength * 3.2;
         
-        pt1 = new Point2D.Double((x + diagonalHalfLength) * UIProperties.getUiScale(), (y + diagonalHalfLength) * UIProperties.getUiScale());
+        pt1 = new Point2D.Double((x + diagonalHalfLength), (y + diagonalHalfLength));
     }
     
     @Override
@@ -62,9 +62,9 @@ public class ClockBlock extends Block {
         selectorIndicator.lineTo(footLMP.getX(), footLMP.getY());
         selectorIndicator.lineTo(footLRP.getX(), footLRP.getY());
         
-        selectorIndicator.lineTo(footLRP.getX() + diagonalHHLength * UIProperties.getUiScale(), footLRP.getY() + diagonalHHHLength * UIProperties.getUiScale());
-        selectorIndicator.lineTo(footLMP.getX(), footLMP.getY() + diagonalHHLength * UIProperties.getUiScale());
-        selectorIndicator.lineTo(footLLP.getX() - diagonalHHLength * UIProperties.getUiScale(), footLLP.getY() + diagonalHHHLength * UIProperties.getUiScale());
+        selectorIndicator.lineTo(footLRP.getX() + diagonalHHLength, footLRP.getY() + diagonalHHHLength);
+        selectorIndicator.lineTo(footLMP.getX(), footLMP.getY() + diagonalHHLength);
+        selectorIndicator.lineTo(footLLP.getX() - diagonalHHLength, footLLP.getY() + diagonalHHHLength);
         
         selectorIndicator.closePath();
         
@@ -79,13 +79,13 @@ public class ClockBlock extends Block {
     public void paintBlock(Graphics2D g2D) {
         createFaces();
         
-        footLRP = new Point2D.Double((x + diagonalLength) * UIProperties.getUiScale(), (y + diagonalLength - diagonalHHLength) * UIProperties.getUiScale());
-        footLMP = new Point2D.Double((x + diagonalHalfLength) * UIProperties.getUiScale(), (y + diagonalLength) * UIProperties.getUiScale());
-        footLLP = new Point2D.Double(x * UIProperties.getUiScale(), (y + diagonalLength - diagonalHHLength) * UIProperties.getUiScale());
+        footLRP = new Point2D.Double(x + diagonalLength, y + diagonalLength - diagonalHHLength);
+        footLMP = new Point2D.Double(x + diagonalHalfLength, y + diagonalLength);
+        footLLP = new Point2D.Double(x, y + diagonalLength - diagonalHHLength);
 
-        Point2D footLP = new Point2D.Double((x + diagonalHHHLength) * UIProperties.getUiScale(), (y + diagonalLength - diagonalHHLength - diagonalHHHLength) * UIProperties.getUiScale());
-        Point2D footMP = new Point2D.Double((x + diagonalHalfLength) * UIProperties.getUiScale(), (y + diagonalLength - diagonalHHHLength - clockConstant1) * UIProperties.getUiScale());
-        Point2D footRP = new Point2D.Double((x + diagonalLength - diagonalHHHLength) * UIProperties.getUiScale(), (y + diagonalLength - diagonalHHLength - diagonalHHHLength) * UIProperties.getUiScale());
+        Point2D footLP = new Point2D.Double(x + diagonalHHHLength, y + diagonalLength - diagonalHHLength - diagonalHHHLength);
+        Point2D footMP = new Point2D.Double(x + diagonalHalfLength, y + diagonalLength - diagonalHHHLength - clockConstant1);
+        Point2D footRP = new Point2D.Double(x + diagonalLength - diagonalHHHLength, y + diagonalLength - diagonalHHLength - diagonalHHHLength);
 
         Path2D rFoot = new Path2D.Double();
         rFoot.moveTo(footLRP.getX(), footLRP.getY());
@@ -109,9 +109,9 @@ public class ClockBlock extends Block {
 
 
 
-        Point2D bodyLP = new Point2D.Double(footLP.getX(), footLP.getY() - diagonalLength * 0.9 * UIProperties.getUiScale());
-        Point2D bodyMP = new Point2D.Double(footMP.getX(), footMP.getY() - diagonalLength * 0.9 * UIProperties.getUiScale());
-        Point2D bodyRP = new Point2D.Double(footRP.getX(), footRP.getY() - diagonalLength * 0.9 * UIProperties.getUiScale());
+        Point2D bodyLP = new Point2D.Double(footLP.getX(), footLP.getY() - diagonalLength * 0.9);
+        Point2D bodyMP = new Point2D.Double(footMP.getX(), footMP.getY() - diagonalLength * 0.9);
+        Point2D bodyRP = new Point2D.Double(footRP.getX(), footRP.getY() - diagonalLength * 0.9);
 
         Path2D rbody = new Path2D.Double();
         rbody.moveTo(footRP.getX(), footRP.getY());
@@ -135,13 +135,13 @@ public class ClockBlock extends Block {
 
 
 
-        Point2D headLP = new Point2D.Double(bodyLP.getX() - (diagonalHHHLength * UIProperties.getUiScale()) + clockConstant0, bodyLP.getY() - clockConstant2);
+        Point2D headLP = new Point2D.Double(bodyLP.getX() - diagonalHHHLength + clockConstant0, bodyLP.getY() - clockConstant2);
         headMP = new Point2D.Double(bodyMP.getX(), bodyMP.getY() - clockConstant2);
-        Point2D headRP = new Point2D.Double(bodyRP.getX() + (diagonalHHHLength * UIProperties.getUiScale()) - clockConstant0, bodyRP.getY() - clockConstant2);
+        Point2D headRP = new Point2D.Double(bodyRP.getX() + diagonalHHHLength - clockConstant0, bodyRP.getY() - clockConstant2);
 
         Path2D rHead = new Path2D.Double();
-        rHead.moveTo(bodyRP.getX() + (diagonalHHHLength * UIProperties.getUiScale()) - clockConstant0, bodyRP.getY() + (diagonalHHHLength * UIProperties.getUiScale()));
-        rHead.lineTo(bodyMP.getX(), bodyMP.getY() + (diagonalHHHLength * UIProperties.getUiScale()));
+        rHead.moveTo(bodyRP.getX() + diagonalHHHLength - clockConstant0, bodyRP.getY() + diagonalHHHLength);
+        rHead.lineTo(bodyMP.getX(), bodyMP.getY() + diagonalHHHLength);
         rHead.lineTo(headMP.getX(), headMP.getY());
         rHead.lineTo(headRP.getX(), headRP.getY());
         rHead.closePath();
@@ -150,8 +150,8 @@ public class ClockBlock extends Block {
         g2D.fill(rHead);
         
         Path2D lHead = new Path2D.Double();
-        lHead.moveTo(bodyLP.getX() - (diagonalHHHLength * UIProperties.getUiScale()) + clockConstant0, bodyLP.getY() + (diagonalHHHLength * UIProperties.getUiScale()));
-        lHead.lineTo(bodyMP.getX(), bodyMP.getY() + (diagonalHHHLength * UIProperties.getUiScale()));
+        lHead.moveTo(bodyLP.getX() - diagonalHHHLength + clockConstant0, bodyLP.getY() + diagonalHHHLength);
+        lHead.lineTo(bodyMP.getX(), bodyMP.getY() + diagonalHHHLength);
         lHead.lineTo(headMP.getX(), headMP.getY());
         lHead.lineTo(headLP.getX(), headLP.getY());
         lHead.closePath();
@@ -165,8 +165,8 @@ public class ClockBlock extends Block {
 
 
         Point2D headLidMP = new Point2D.Double(headMP.getX(), headMP.getY() + clockConstant0);
-        Point2D headLidTMP = new Point2D.Double(headMP.getX() + (diagonalHHLength * UIProperties.getUiScale()), headMP.getY() - (diagonalHHLength * UIProperties.getUiScale()) - clockConstant3);
-        headLidP4 = new Point2D.Double(headLP.getX() + (diagonalHHLength * UIProperties.getUiScale()) - clockConstant0, headLP.getY() - (diagonalHHLength * UIProperties.getUiScale()) - clockConstant3);
+        Point2D headLidTMP = new Point2D.Double(headMP.getX() + (diagonalHHLength), headMP.getY() - diagonalHHLength - clockConstant3);
+        headLidP4 = new Point2D.Double(headLP.getX() + diagonalHHLength - clockConstant0, headLP.getY() - diagonalHHLength - clockConstant3);
 
 
         Path2D rHeadLid = new Path2D.Double();

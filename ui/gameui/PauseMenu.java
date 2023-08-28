@@ -1,6 +1,8 @@
 package ui.gameui;
 
 import java.awt.Dimension;
+import java.lang.reflect.InvocationTargetException;
+import javax.swing.SwingUtilities;
 import ui.ColorButton;
 import ui.Label;
 import ui.Panel;
@@ -18,6 +20,9 @@ public class PauseMenu extends Panel {
     private final ColorButton goBackButton = new ColorButton("Main menu");
     private final ColorButton exitButton = new ColorButton("Quit");
 
+    
+    private boolean confirmReset = false;
+    
     
     private final GameUI container;
     
@@ -39,6 +44,42 @@ public class PauseMenu extends Panel {
         });
         
         restartButton.setPreferredSize(new Dimension(180, 44));
+        restartButton.addActionListener((Action) -> {
+            if (confirmReset) {
+                confirmReset = false;
+                container.resetProgress();
+                restartButton.setText("Restart");
+                return;
+            }
+            
+            confirmReset = true;
+            
+            new Thread(() -> {
+                int time = 3;
+                while (time > -1) {
+                    if (!confirmReset)
+                        return;
+                    
+                    final int t = time;
+                    try {
+                        SwingUtilities.invokeAndWait(() -> {
+                            restartButton.setText("Are you sure? (" + t + "s)");
+                        });
+                    } catch (InterruptedException | InvocationTargetException ex) {
+                        ex.printStackTrace();
+                    }
+                    
+                    try { Thread.sleep(1000); } catch (InterruptedException ex) { }
+                    time--;
+                }
+                
+                confirmReset = false;
+                SwingUtilities.invokeLater(() -> {
+                    restartButton.setText("Restart");
+                });
+            }).start();
+        });
+        
         goBackButton.setPreferredSize(new Dimension(100, 22));
         goBackButton.addActionListener((Action) -> {
             container.mainWindow.showLoginWindow();
@@ -61,11 +102,13 @@ public class PauseMenu extends Panel {
         menuTitle.setText("Game over");
         resumeButton.setText("Level " + score);
         resumeButton.setEnabled(false);
+        confirmReset = true;
     }
     
     public void resetLook() {
         menuTitle.setText("Pause");
         resumeButton.setText("Resume");
         resumeButton.setEnabled(true);
+        confirmReset = false;
     }
 }

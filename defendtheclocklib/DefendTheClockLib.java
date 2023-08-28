@@ -15,6 +15,9 @@ public class DefendTheClockLib {
     public static void main(String[] args) {
         LibUtilities.loadDefaultPreferences();
         
+        // idk if this is helpful at all
+        System.setProperty("sun.java2d.opengl", "true");
+        
 //        new GameWindow(null, WorldUtilities.loadWorld(FileUtilities.joinPath(WorldUtilities.WORLDS_DIRECTORY, "Remote_Island.dtcl")), GameModes.CONSTRUCTION, "").showWindow();
         
         LoginWindow loginWindow = new LoginWindow();

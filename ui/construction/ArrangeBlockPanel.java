@@ -120,10 +120,10 @@ public class ArrangeBlockPanel extends Panel {
             }
         });
         sentToFrontButton.addActionListener((Action) -> {
-            container.moveSelectedBlockTo(true);
+            positionInStackSelector.setValue(container.moveSelectedBlockTo(true));
         });
         sentToBackButton.addActionListener((Action) -> {
-            container.moveSelectedBlockTo(false);
+            positionInStackSelector.setValue(container.moveSelectedBlockTo(false));
         });
         
         

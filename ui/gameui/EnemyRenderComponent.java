@@ -3,16 +3,22 @@ package ui.gameui;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import ui.UIProperties;
+import ui.blocks.Block;
 import ui.blocks.ClockBlock;
 import ui.enemies.CubeMonster;
 import ui.enemies.EyeMonster;
 import ui.enemies.FaceMonster;
+import ui.mouselisteners.CoordBlockSelector;
+import ui.turrets.BasicTurret;
+import ui.turrets.Turrets;
 import utils.LibUtilities;
 
 /**
@@ -27,33 +33,43 @@ public class EnemyRenderComponent extends JComponent {
     private int activeID = -1;
     
     
-    private int steps = 0;
-    
     private boolean creatingEnemies = false;
     
     private ClockBlock clockBlock;
     
-    private final ArrayList<CubeMonster> cubeMonsters = new ArrayList<>();
+    private ArrayList<CubeMonster> cubeMonsters = new ArrayList<>();
     private CubeMonster lastMonster;
     
-    private final int cubeMonsterWidth;
+    private ArrayList<Block> turrets = new ArrayList<>();
+    
+    private final int gridWidth;
     private boolean allEnemiesDead = true;
     
     
-    private final GameUI gameUI;
+    public final GameUI gameUI;
     
     
     public EnemyRenderComponent(GameUI container) {
         this.gameUI = container;
         
-        cubeMonsterWidth = (int) this.gameUI.mainWindow.world.getGridLength();
+        gridWidth = (int) this.gameUI.mainWindow.world.getGridLength();
         
         initEnemyRenderComponent();
     }
 
     private void initEnemyRenderComponent() {
+        addMouseListener(new CoordBlockSelector(this));
+        
         updateNumberOfSteps(0);
         setPreferredSize(new Dimension(1000, 600));
+    }
+    
+    @Override
+    public final void setPreferredSize(Dimension preferredSize) {
+        preferredSize.width = (int) (preferredSize.width * UIProperties.getUiScale());
+        preferredSize.height = (int) (preferredSize.height * UIProperties.getUiScale());
+        
+        super.setPreferredSize(preferredSize);
     }
     
     @Override
@@ -62,11 +78,20 @@ public class EnemyRenderComponent extends JComponent {
 //            cubeMonsters.get(i).paintBlock((Graphics2D) g);
 
         Graphics2D g2D = (Graphics2D) g;
+//        g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2D.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        g2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-        clockBlock.paintHealthBar(g2D);
-        
         for (CubeMonster cm : cubeMonsters)
             cm.paintBlock(g2D);
+        
+        for (Block t : turrets)
+            t.paintBlock(g2D);
+        
+        for (CubeMonster cm : cubeMonsters)
+            cm.paintHealthBar(g2D);
+        
+        clockBlock.paintHealthBar(g2D);
     }
     
     public void updateNumberOfSteps(int stepsGain) {
@@ -130,14 +155,18 @@ public class EnemyRenderComponent extends JComponent {
         allEnemiesDead = false;
         
         new Thread(() -> {
+            for (Block t : turrets) {
+                if (t instanceof BasicTurret)
+                    ((BasicTurret) t).startShootMechanism();
+            }
+            
             int i = 0;
             while (i < monsterAmount) {
                 if (gameUI.isPaused())
                     try { Thread.sleep(100); } catch (InterruptedException ex) { }
                 
-                if (lastMonster != null)
-                    while (lastMonster.getLastCoordinate() < 4)
-                        try { Thread.sleep(100); } catch (InterruptedException ex) { }
+                while (lastMonster != null && lastMonster.getLastCoordinate() < 4)
+                    try { Thread.sleep(100); } catch (InterruptedException ex) { }
                 
                 try {
                     SwingUtilities.invokeAndWait(() -> {
@@ -149,21 +178,54 @@ public class EnemyRenderComponent extends JComponent {
                 
                 i++;
             }
+            
+            creatingEnemies = false;
         }).start();
     }
     
     public void createNewCubeMonster(int health, Point2D spawnCoordinates) {
         if ((int) (Math.random() * 10) % 2 == 0)
-            lastMonster = new EyeMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), cubeMonsterWidth, health);
+            lastMonster = new EyeMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), gridWidth, health);
         else
-            lastMonster = new FaceMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), cubeMonsterWidth, health);
+            lastMonster = new FaceMonster(spawnCoordinates.getX(), spawnCoordinates.getY(), gridWidth, health);
         
         lastMonster.setNumberOfSteps(gameUI.stats.getNumberOfSteps());
         lastMonster.setNextTilePosition(gameUI.mainWindow.world.getEnemyPathCoordinate(0));
         lastMonster.defineFacingDirection();
         cubeMonsters.add(lastMonster);
+    }
+    
+    public void createTurret(Turrets type, double xGrid, double yGrid) {
+        Block t = null;
         
-        creatingEnemies = false;
+        switch(type) {
+            case BASIC_TURRET:
+                t = new BasicTurret(xGrid, yGrid, gridWidth);
+                t.createFaces();
+                turrets.add(t);
+                repaint(((BasicTurret) t).getPaintArea());
+            break;
+        }
+    }
+    
+    public void despawnCubeMonsters() {
+        for (CubeMonster cm : cubeMonsters)
+            cm.dispose();
+        
+        cubeMonsters = new ArrayList<>();
+        lastMonster = null;
+    }
+    
+    public void disassembleAllTurrets() {
+        turrets = new ArrayList<>();
+    }
+    
+    public boolean isPlaceOccupied(Point2D p) {
+        for (Block t : turrets)
+            if (t.doCoordinatesEqual(p))
+                return true;
+        
+        return false;
     }
     
     private void moveCubeMonsters() {
@@ -172,13 +234,16 @@ public class EnemyRenderComponent extends JComponent {
             repaint(cm.getPaintArea());
         }
     }
-
+    
     private void moveEnemies() {
-        if (creatingEnemies)
-            return;
-        
-        if (cubeMonsters.isEmpty()) {
+        if (cubeMonsters.isEmpty() && !creatingEnemies) {
+            lastMonster = null;
             allEnemiesDead = true;
+            for (Block t : turrets) {
+                if (t instanceof BasicTurret)
+                    ((BasicTurret) t).stopShootMechanism();
+            }
+            
             return;
         }
         
@@ -186,7 +251,7 @@ public class EnemyRenderComponent extends JComponent {
         while (i < cubeMonsters.size()) {
             CubeMonster cm = cubeMonsters.get(i);
 
-            if (!cm.movementEnded()) {
+            if (!cm.didMovementEnd()) {
                 i++;
                 continue;
             } else {
@@ -196,8 +261,14 @@ public class EnemyRenderComponent extends JComponent {
             boolean remove = cm.setNextTilePosition(gameUI.mainWindow.world.getEnemyPathCoordinate(cm.getLastCoordinate()));
             if (remove) {
                 gameUI.decreaseClockHealth();
-                cubeMonsters.remove(i);
+                cubeMonsters.remove(i).dispose();
                 repaint(cm.getPaintArea());
+                continue;
+            } else if (cm.isDead()) {
+                cubeMonsters.remove(i).dispose();
+                repaint(cm.getPaintArea());
+                if (cm == lastMonster)
+                    lastMonster = null;
                 continue;
             }
 
@@ -206,13 +277,18 @@ public class EnemyRenderComponent extends JComponent {
             i++;
         }
 
-        if (cubeMonsters.isEmpty()) {
-            steps = 0;
+        if (cubeMonsters.isEmpty())
             return;
-        }
         
         moveCubeMonsters();
         
-        steps++;
+        for (Block t : turrets) {
+            if (t instanceof BasicTurret) {
+                BasicTurret bt = (BasicTurret) t;
+                bt.setTarget(cubeMonsters.get(0));
+                bt.lookAt(cubeMonsters.get(0).getX(), cubeMonsters.get(0).getY());
+                repaint(bt.getPaintArea());
+            }
+        }
     }
 }

@@ -2,7 +2,9 @@ package ui.enemies;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
 import ui.enums.CubeMonsterFacing;
 
 /**
@@ -35,48 +37,43 @@ public class FaceMonster extends CubeMonster {
     protected Path2D leftFaceLeftEye;
     protected Path2D leftFaceRightEye;
     
+    protected static BufferedImage rFace = null;
+    protected static BufferedImage lFace = null;
     
     public FaceMonster(double xGrid, double yGrid, double diagonalLength, int health) {
-        super(xGrid, yGrid, diagonalLength);
+        super(xGrid, yGrid, diagonalLength, health);
         
         name = "FaceMonster";
-        
-        setMaximumHealth(health);
     }
 
     @Override
     public void createFaces() {
         super.createFaces();
         
-        if (facingDirection == CubeMonsterFacing.RIGHT) {
-            rightFaceRightEye = new Path2D.Double();
+        rightFaceRightEye = new Path2D.Double();
 
-            rightFaceRightEye.moveTo(pt0.getX() - faceMonsterConstant0, pt0.getY() + faceMonsterConstant1);
-            rightFaceRightEye.lineTo(pt0.getX() - faceMonsterConstant2, pt0.getY() + faceMonsterConstant2);
-            rightFaceRightEye.lineTo(pt0.getX() - faceMonsterConstant2, pt0.getY() + faceMonsterConstant3);
-            rightFaceRightEye.lineTo(pt0.getX() - faceMonsterConstant0, pt0.getY() + faceMonsterConstant4);
-            rightFaceRightEye.closePath();
+        rightFaceRightEye.moveTo(pt0.getX() - faceMonsterConstant0, pt0.getY() + faceMonsterConstant1);
+        rightFaceRightEye.lineTo(pt0.getX() - faceMonsterConstant2, pt0.getY() + faceMonsterConstant2);
+        rightFaceRightEye.lineTo(pt0.getX() - faceMonsterConstant2, pt0.getY() + faceMonsterConstant3);
+        rightFaceRightEye.lineTo(pt0.getX() - faceMonsterConstant0, pt0.getY() + faceMonsterConstant4);
+        rightFaceRightEye.closePath();
 
-            rightFaceLeftEye = new Path2D.Double();
+        rightFaceLeftEye = new Path2D.Double();
 
-            rightFaceLeftEye.moveTo(pt0.getX() - faceMonsterConstant8, pt0.getY() + faceMonsterConstant5);
-            rightFaceLeftEye.lineTo(pt0.getX() - faceMonsterConstant3, pt0.getY() + faceMonsterConstant6);
-            rightFaceLeftEye.lineTo(pt0.getX() - faceMonsterConstant3, pt0.getY() + faceMonsterConstant11);
-            rightFaceLeftEye.lineTo(pt0.getX() - faceMonsterConstant8, pt0.getY() + faceMonsterConstant9);
-            rightFaceLeftEye.closePath();
+        rightFaceLeftEye.moveTo(pt0.getX() - faceMonsterConstant8, pt0.getY() + faceMonsterConstant5);
+        rightFaceLeftEye.lineTo(pt0.getX() - faceMonsterConstant3, pt0.getY() + faceMonsterConstant6);
+        rightFaceLeftEye.lineTo(pt0.getX() - faceMonsterConstant3, pt0.getY() + faceMonsterConstant11);
+        rightFaceLeftEye.lineTo(pt0.getX() - faceMonsterConstant8, pt0.getY() + faceMonsterConstant9);
+        rightFaceLeftEye.closePath();
 
-            rightFaceMouth = new Path2D.Double();
+        rightFaceMouth = new Path2D.Double();
 
-            rightFaceMouth.moveTo(pt0.getX() - faceMonsterConstant12, pt0.getY() + faceMonsterConstant7);
-            rightFaceMouth.lineTo(pt0.getX() - faceMonsterConstant13, pt0.getY() + faceMonsterConstant10);
-            rightFaceMouth.lineTo(pt0.getX() - faceMonsterConstant13, pt0.getY() + faceMonsterConstant14);
-            rightFaceMouth.lineTo(pt0.getX() - faceMonsterConstant12, pt0.getY() + faceMonsterConstant15);
-            rightFaceMouth.closePath();
-            return;
-        }
-        
-        if (facingDirection != CubeMonsterFacing.LEFT)
-            return;
+        rightFaceMouth.moveTo(pt0.getX() - faceMonsterConstant12, pt0.getY() + faceMonsterConstant7);
+        rightFaceMouth.lineTo(pt0.getX() - faceMonsterConstant13, pt0.getY() + faceMonsterConstant10);
+        rightFaceMouth.lineTo(pt0.getX() - faceMonsterConstant13, pt0.getY() + faceMonsterConstant14);
+        rightFaceMouth.lineTo(pt0.getX() - faceMonsterConstant12, pt0.getY() + faceMonsterConstant15);
+        rightFaceMouth.closePath();
+            
 
         leftFaceLeftEye = new Path2D.Double();
 
@@ -106,19 +103,49 @@ public class FaceMonster extends CubeMonster {
     @Override
     public void paintBlock(Graphics2D g2D) {
         super.paintBlock(g2D);
-        
-        createFaces();
 
-        g2D.setColor(Color.BLACK);
-        if (facingDirection == CubeMonsterFacing.RIGHT) {
-            g2D.fill(rightFaceRightEye);
-            g2D.fill(rightFaceLeftEye);
-            g2D.fill(rightFaceMouth);
-        } else if (facingDirection == CubeMonsterFacing.LEFT) {
-            g2D.fill(leftFaceLeftEye);
-            g2D.fill(leftFaceRightEye);
-            g2D.fill(leftFaceMouth);
+        if (rFace == null) {
+            rFace = new BufferedImage((int) diagonalLength, (int) diagonalLength, BufferedImage.TYPE_INT_ARGB);
+            lFace = new BufferedImage((int) diagonalLength, (int) diagonalLength, BufferedImage.TYPE_INT_ARGB);
+            
+            createFaces();
+
+            Graphics2D bg2D = rFace.createGraphics();
+            bg2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            bg2D.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+            bg2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            
+            bg2D.setColor(Color.BLACK);
+            
+            bg2D.fill(rightFaceRightEye);
+            bg2D.fill(rightFaceLeftEye);
+            bg2D.fill(rightFaceMouth);
+
+            
+            bg2D = lFace.createGraphics();
+            bg2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            bg2D.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+            bg2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            
+            bg2D.setColor(Color.BLACK);
+            
+            bg2D.fill(leftFaceLeftEye);
+            bg2D.fill(leftFaceRightEye);
+            bg2D.fill(leftFaceMouth);
         }
+        
+        if (facingDirection == CubeMonsterFacing.RIGHT)
+            g2D.drawImage(rFace, (int) x, (int) y, null);
+        else if (facingDirection == CubeMonsterFacing.LEFT)
+            g2D.drawImage(lFace, (int) x, (int) y, null);
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        
+        rFace.getGraphics().dispose();
+        lFace.getGraphics().dispose();
     }
 
     @Override

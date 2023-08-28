@@ -21,18 +21,19 @@ public class GameUI extends Panel {
     private final ImageButton pauseButton = new ImageButton(ImageButtonArrangement.ONLY_IMAGE);
     private final ImageButton budgetLabel = new ImageButton("$ 1000", false, ImageButtonArrangement.F_RIGHT_TEXT_LEFT_IMAGE);
     private final ImageButton starsLabel = new ImageButton("0 stars", false, ImageButtonArrangement.F_RIGHT_TEXT_LEFT_IMAGE);
-    private final ImageButton levelLabel = new ImageButton("Level 1", false, ImageButtonArrangement.F_CENTER_TEXT_LEFT_IMAGE);
+    private final ImageButton levelLabel = new ImageButton("Round 1", false, ImageButtonArrangement.F_CENTER_TEXT_LEFT_IMAGE);
     
     private final ImageButton nextRoundButton = new ImageButton("Next round", false, ImageButtonArrangement.F_LEFT_TEXT_LEFT_IMAGE);
     
     private final PauseMenu pauseMenu = new PauseMenu(this);
-    private final StarsMenu starsMenu = new StarsMenu(this);
+    public final StarsMenu starsMenu = new StarsMenu(this);
+    public final NewTurretMenu turretsMenu = new NewTurretMenu(this);
     
     
     private boolean nextRoundButtonIsVisible = true;
     
     
-    public final GameState stats = new GameState(this);
+    public GameState stats = new GameState(this);
     private boolean paused = false;
     
     
@@ -89,20 +90,23 @@ public class GameUI extends Panel {
             mainWindow.enemyRenderComponent.generateMonsterHorde(stats.getMonsterAmount(), stats.getMonsterHealth(), mainWindow.world.getEnemySpawnPoint());
             nextRoundButtonUpdater.start();
         });
+        
+        turretsMenu.updatePrices();
 
 
         AppUtilities.addBundleImagesToImageButton(pauseButton, "Pause", 35);
         AppUtilities.addBundleImagesToImageButton(nextRoundButton, "Next", 40);
 
 
+        add(pauseMenu, this, this, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, 0);
+        add(starsMenu, this, this, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, 0);
+        add(turretsMenu, this, this, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.NORTH, UIAlignment.NORTH, 10);
+        
         add(pauseButton, this, this, UIAlignment.WEST, UIAlignment.WEST, 10, UIAlignment.NORTH, UIAlignment.NORTH, 10);
         add(starsLabel, this, this, UIAlignment.EAST, UIAlignment.EAST, -10, UIAlignment.NORTH, UIAlignment.NORTH, 10);
         add(budgetLabel, starsLabel, this, UIAlignment.EAST, UIAlignment.WEST, -10, UIAlignment.NORTH, UIAlignment.NORTH, 10);
         add(levelLabel, this, this, UIAlignment.WEST, UIAlignment.WEST, 10, UIAlignment.SOUTH, UIAlignment.SOUTH, -10);
         add(nextRoundButton, this, this, UIAlignment.EAST, UIAlignment.EAST, -10, UIAlignment.SOUTH, UIAlignment.SOUTH, -10);
-        
-        add(pauseMenu, this, this, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, 0);
-        add(starsMenu, this, this, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.VERTICAL_CENTER, UIAlignment.VERTICAL_CENTER, 0);
     }
 
     @Override
@@ -118,6 +122,7 @@ public class GameUI extends Panel {
         starsLabel.setVisible(!paused);
         levelLabel.setVisible(!paused);
         pauseButton.setVisible(!paused);
+        turretsMenu.setVisible(false);
         nextRoundButton.setVisible(nextRoundButtonIsVisible ? !paused : false);
         
         setBackground(new Color(0, 0, 0, paused ? 120 : 0));
@@ -142,17 +147,56 @@ public class GameUI extends Panel {
         return paused;
     }
 
-    private void levelUp() {
-        stats.levelUp();
+    public void resetProgress() {
+        stats = new GameState(this);
         
-        levelLabel.setText("Level " + stats.getLevel());
-        budgetLabel.setText("$ " + stats.getGoldenDollars());
-        starsMenu.setBudgetLabelText("$ " + stats.getGoldenDollars());
+        levelLabel.setText("Round " + stats.getLevel());
+        updateGoldenDollarsAmount();
         
         nextRoundButton.setVisible(true);
         nextRoundButtonIsVisible = true;
         
         nextRoundButtonUpdater.stop();
+        
+        mainWindow.enemyRenderComponent.setClockHealth(stats.getClockHealth());
+        mainWindow.enemyRenderComponent.updateNumberOfSteps(0);
+        mainWindow.enemyRenderComponent.despawnCubeMonsters();
+        mainWindow.enemyRenderComponent.disassembleAllTurrets();
+        
+        togglePause();
+    }
+    
+    private void levelUp() {
+        stats.levelUp();
+        
+        levelLabel.setText("Round " + stats.getLevel());
+        updateGoldenDollarsAmount();
+        
+        nextRoundButton.setVisible(true);
+        nextRoundButtonIsVisible = true;
+        
+        nextRoundButtonUpdater.stop();
+    }
+    
+    public void showLabels() {
+        budgetLabel.setVisible(true);
+        starsLabel.setVisible(true);
+    }
+    
+    public void hideLabels() {
+        budgetLabel.setVisible(false);
+        starsLabel.setVisible(false);
+    }
+    
+    public void showTurretsMenu() {
+        hideLabels();
+        turretsMenu.setVisible(true);
+    }
+    
+    public void updateGoldenDollarsAmount() {
+        budgetLabel.setText("$ " + stats.getGoldenDollars());
+        starsMenu.setBudgetLabelText("$ " + stats.getGoldenDollars());
+        turretsMenu.setBudgetLabelText("$ " + stats.getGoldenDollars());
     }
     
     public void decreaseClockHealth() {

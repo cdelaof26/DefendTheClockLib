@@ -238,6 +238,13 @@ public class LoginWindow extends Window {
             this.add(worldName, this, this, UIAlignment.HORIZONTAL_CENTER, UIAlignment.HORIZONTAL_CENTER, 0, UIAlignment.SOUTH, UIAlignment.SOUTH, -10);
         }
 
+        @Override
+        public void updateUISize() {
+            super.updateUISize();
+            if (preview != null)
+                preview.resizeWorld(200, 120);
+        }
+
         public void removePreview() {
             if (this.preview != null)
                 this.remove(this.preview);

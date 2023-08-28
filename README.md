@@ -41,6 +41,20 @@ $ java defendtheclocklib/DefendTheClockLib
 
 ### Changelog
 
+### v0.4.0
+- Fixed an issue where creating a new world would crash the build system
+- Improved world resizing
+- Disabled antialiasing when rendering the world (this might be added as setting),
+  as now block might look worse but there isn't a space in between
+- Added `BasicTurret` as first in-game weapon!
+  - Added a menu to purchase turrets
+- Fixed an issue where layer field in build panel won't update if the block was sent 
+  to front or back
+- CubeMonsters are rendered as images in an attempt to improve the CPU usage
+- Changed "Level" for "Round" in `GameUI`
+- `Restart` option is now functional
+- Changed turrets damage and improved difficulty level-ups
+
 ### v0.3.1
 - Renaming field in `WorldPropertiesPanel` now renames the file if exist
 - Added a minimum requirement of five path blocks to load a map for a

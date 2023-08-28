@@ -18,6 +18,8 @@ import ui.blocks.Block;
 import ui.blocks.ClockBlock;
 import ui.blocks.EnemyPathBlock;
 import ui.blocks.EnemySpawnBlock;
+import ui.blocks.LavaBlock;
+import ui.blocks.WaterBlock;
 import ui.mouselisteners.BlockDragger;
 import ui.mouselisteners.BlockSelector;
 import utils.AppUtilities;
@@ -54,6 +56,8 @@ public class World extends JComponent implements ComponentSetup {
     
     private ArrayList<Block> blocks = new ArrayList<>();
     private ClockBlock clockBlock;
+    
+    private ArrayList<Block> removedBlocks = new ArrayList<>();
     
     protected boolean allPathBlockTogether = false;
     protected boolean fivePathBlocks = false;
@@ -155,7 +159,7 @@ public class World extends JComponent implements ComponentSetup {
         Graphics2D g2D;
         
         if (image == null && renderFromImage && renderToImageFT) {
-            image = AppUtilities.gc.createCompatibleVolatileImage(width, height);
+            image = AppUtilities.gc.createCompatibleVolatileImage(getPreferredSize().width, getPreferredSize().height);
             g2D = image.createGraphics();
         } else
             g2D = (Graphics2D) g;
@@ -167,14 +171,14 @@ public class World extends JComponent implements ComponentSetup {
         }
         
         
-        g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//        g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2D.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
         g2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         
         g2D.setColor(backgroundColor);
         g2D.fillRect(0, 0, getPreferredSize().width, getPreferredSize().height);
         
-        g2D.setStroke(new BasicStroke(1 * UIProperties.uiScale));
+        g2D.setStroke(new BasicStroke(UIProperties.uiScale));
         if (gridVisible) {
             g2D.setColor(UIProperties.DIM_TEXT_COLOR);
             
@@ -280,17 +284,17 @@ public class World extends JComponent implements ComponentSetup {
         this.gridHalfLength = this.gridLength / 2d;
         
         for (Block b : blocks)
-            b.setDiagonalLength(gridLength);
+            b.setDiagonalLength(gridLength * UIProperties.getUiScale());
         
         repaint();
     }
 
     public double getGridLength() {
-        return gridLength;
+        return gridLength * UIProperties.getUiScale();
     }
 
     public double getGridHalfLength() {
-        return gridHalfLength;
+        return gridHalfLength * UIProperties.getUiScale();
     }
 
     public double getWidthInSquares() {
@@ -404,6 +408,46 @@ public class World extends JComponent implements ComponentSetup {
         return null;
     }
     
+    public Point2D selectTopBlock(Point2D p) {
+        int removed = removedBlocks.size();
+        int blocksAmount = blocks.size();
+        
+        for (int i = removed + blocksAmount - 1; i > -1; i--) {
+            Block b;
+            if (i - removed > -1)
+                b = blocks.get(i - removed);
+            else
+                b = removedBlocks.get(i);
+            
+            if ((b instanceof EnemyPathBlock))
+                if (b.isPointInside(p))
+                    return null;
+            
+            if ((b instanceof EnemySpawnBlock))
+                if (b.isPointInside(p))
+                    return null;
+            
+            if ((b instanceof LavaBlock) || (b instanceof WaterBlock))
+                if (b.isPointInside(p))
+                    return null;
+            
+            if (b instanceof ClockBlock)
+                if (b.isPointInside(p))
+                    return null;
+        }
+        
+        for (int i = blocks.size() - 1; i > -1; i--) {
+            Block b = blocks.get(i);
+            
+            if (b.isPointInside(p)) {
+                Point2D p1 = b.getCoordinates();
+                return new Point2D.Double(p1.getX(), p1.getY() - 0.5);
+            }
+        }
+        
+        return null;
+    }
+    
     private void moveBlockLayer(int position) {
         if (blockSelector.getSelectedBlock() == null)
             return;
@@ -452,7 +496,7 @@ public class World extends JComponent implements ComponentSetup {
         int i = 0;
         while (i < blocks.size()) {
             if (!blocks.get(i).isVisible()) {
-                blocks.remove(i);
+                removedBlocks.add(blocks.remove(i));
                 continue;
             }
             
@@ -515,8 +559,7 @@ public class World extends JComponent implements ComponentSetup {
             for (int i = 0; i < pathBlocks.size(); i++) {
                 Block b = pathBlocks.get(i);
                 
-                connected = b.doCoordinatesEqual(points[0]) || b.doCoordinatesEqual(points[1]) 
-                        || b.doCoordinatesEqual(points[2]) || b.doCoordinatesEqual(points[3]);
+                connected = b.doCoordinatesEqual(points);
                 
                 if (connected) {
                     lastBlock = pathBlocks.remove(i);
@@ -542,6 +585,13 @@ public class World extends JComponent implements ComponentSetup {
         blocks.add(clockBlock);
         
 //        System.out.println(allPathBlockTogether ? "Route COMPLETE" : "Route incomplete");
+    }
+    
+    public void dispose() {
+        blocks = null;
+        
+        if (renderFromImage)
+            image.getGraphics().dispose();
     }
     
     public HashMap<String, String> collectProperties() {
